@@ -1,0 +1,6152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08111f" />
+  <title>슬레이터 계산기 v.1.0</title>
+
+  <meta
+    name="description"
+    content="슬레이터 규칙을 이용해 차폐 상수와 유효 핵전하를 계산하고, 학습 모드와 SCF 문헌값 비교를 제공하는 웹 계산기"
+  >
+  <meta name="author" content="JihuJeong">
+  <meta name="theme-color" content="#071522">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:title" content="슬레이터 계산기 v.1.0">
+  <meta
+    property="og:description"
+    content="슬레이터 규칙을 이용해 차폐 상수와 유효 핵전하를 계산하고, 학습 모드와 SCF 문헌값 비교를 제공하는 웹 계산기"
+  >
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="슬레이터 계산기 v.1.0">
+  <meta
+    name="twitter:description"
+    content="슬레이터 규칙을 이용해 차폐 상수와 유효 핵전하를 계산하고, 학습 모드와 SCF 문헌값 비교를 제공하는 웹 계산기"
+  >
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%0A%20%20%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2215%22%20fill%3D%22%23071522%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22%2358c7ff%22%2F%3E%0A%20%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%2388dcff%22%20stroke-width%3D%223%22%3E%0A%20%20%20%20%3Cellipse%20cx%3D%2232%22%20cy%3D%2232%22%20rx%3D%2224%22%20ry%3D%2210%22%2F%3E%0A%20%20%20%20%3Cellipse%20cx%3D%2232%22%20cy%3D%2232%22%20rx%3D%2224%22%20ry%3D%2210%22%20transform%3D%22rotate%2860%2032%2032%29%22%2F%3E%0A%20%20%20%20%3Cellipse%20cx%3D%2232%22%20cy%3D%2232%22%20rx%3D%2224%22%20ry%3D%2210%22%20transform%3D%22rotate%28120%2032%2032%29%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Ccircle%20cx%3D%2255%22%20cy%3D%2232%22%20r%3D%223.5%22%20fill%3D%22%23d8f4ff%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2220.5%22%20cy%3D%2212.1%22%20r%3D%223.5%22%20fill%3D%22%23d8f4ff%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%2220.5%22%20cy%3D%2251.9%22%20r%3D%223.5%22%20fill%3D%22%23d8f4ff%22%2F%3E%0A%3C%2Fsvg%3E">
+
+
+  <style>
+    :root {
+      --bg-deep: #06101c;
+      --bg-mid: #0b1c2f;
+      --panel: rgba(13, 30, 49, 0.72);
+      --line: rgba(145, 210, 255, 0.16);
+      --primary: #58c7ff;
+      --primary-strong: #1fa7f2;
+      --text: #f4fbff;
+      --muted: #a8bfd0;
+      --shadow: 0 22px 70px rgba(0, 0, 0, 0.38);
+
+      --alkali: #ff9777;
+      --alkaline: #ffc66f;
+      --transition: #68c7ff;
+      --post: #7ce1d2;
+      --metalloid: #9bd982;
+      --nonmetal: #a9b6ff;
+      --halogen: #d89cff;
+      --noble: #ff94c6;
+      --lanthanide: #8bd8ff;
+      --actinide: #62e4ba;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow: hidden;
+      font-family:
+        Pretendard, "Noto Sans KR", "Apple SD Gothic Neo",
+        Inter, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(34, 151, 216, 0.18), transparent 34%),
+        radial-gradient(circle at 82% 78%, rgba(43, 210, 181, 0.10), transparent 30%),
+        linear-gradient(145deg, var(--bg-deep), var(--bg-mid));
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.38;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: radial-gradient(circle at center, black, transparent 76%);
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(1px);
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .orb.one {
+      width: 220px;
+      height: 220px;
+      top: -70px;
+      right: 8%;
+      background: radial-gradient(circle, rgba(88, 199, 255, 0.18), transparent 70%);
+    }
+
+    .orb.two {
+      width: 270px;
+      height: 270px;
+      bottom: -115px;
+      left: 6%;
+      background: radial-gradient(circle, rgba(64, 223, 190, 0.12), transparent 72%);
+      animation-delay: -3s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(14px) scale(1.04); }
+    }
+
+    .screen {
+      position: fixed;
+      inset: 0;
+      padding: 28px 20px 76px;
+      transition:
+        opacity 0.55s ease,
+        transform 0.65s cubic-bezier(.2, .8, .2, 1),
+        visibility 0.55s;
+    }
+
+    .screen[aria-hidden="true"] {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    #introScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #introScreen.is-hidden {
+      transform: translateY(-28px) scale(0.985);
+    }
+
+    #periodicScreen {
+      overflow: auto;
+      transform: translateY(28px) scale(0.985);
+    }
+
+    #periodicScreen.is-visible {
+      transform: translateY(0) scale(1);
+    }
+
+    .hero {
+      width: min(680px, 100%);
+      padding: 56px 42px 48px;
+      text-align: center;
+      border: 1px solid rgba(149, 215, 255, 0.17);
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(18, 40, 64, 0.74), rgba(8, 21, 35, 0.68));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      animation: enter 0.85s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    @keyframes enter {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .atom-symbol {
+      width: 74px;
+      height: 74px;
+      margin: 0 auto 22px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      color: var(--primary);
+    }
+
+    .atom-symbol::before,
+    .atom-symbol::after {
+      content: "";
+      position: absolute;
+      width: 64px;
+      height: 26px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      opacity: 0.82;
+    }
+
+    .atom-symbol::before {
+      transform: rotate(28deg);
+    }
+
+    .atom-symbol::after {
+      transform: rotate(-28deg);
+    }
+
+    .nucleus {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 22px rgba(88, 199, 255, 0.95);
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--primary);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.25rem, 7vw, 4.25rem);
+      line-height: 1.04;
+      letter-spacing: -0.055em;
+      font-weight: 850;
+      text-wrap: balance;
+    }
+
+    h1 span {
+      display: inline-block;
+      margin-left: 0.18em;
+      color: var(--primary);
+      font-size: 0.42em;
+      letter-spacing: -0.02em;
+      vertical-align: middle;
+      opacity: 0.95;
+    }
+
+    .description {
+      max-width: 470px;
+      margin: 18px auto 32px;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.65;
+      word-break: keep-all;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .start-button {
+      width: min(360px, 100%);
+      min-height: 62px;
+      padding: 16px 28px;
+      color: #04131f;
+      font-size: 1.08rem;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      border: 0;
+      border-radius: 18px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #85dcff, #35b9ff);
+      box-shadow:
+        0 14px 32px rgba(31, 167, 242, 0.28),
+        inset 0 1px rgba(255, 255, 255, 0.72);
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+    }
+
+    .start-button:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.05);
+      box-shadow:
+        0 18px 38px rgba(31, 167, 242, 0.36),
+        inset 0 1px rgba(255, 255, 255, 0.76);
+    }
+
+    .feedback-button {
+      padding: 9px 13px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      background: transparent;
+      transition:
+        color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .feedback-button:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+
+    .intro-utility-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .update-note-button {
+      position: relative;
+      padding: 9px 13px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      background: transparent;
+      transition:
+        color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .update-note-button:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .update-note-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 18px;
+      margin-left: 6px;
+      padding: 0 6px;
+      color: #06101c;
+      font-size: 0.52rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      border-radius: 999px;
+      background: var(--primary);
+      vertical-align: 1px;
+      box-shadow: 0 0 12px rgba(88, 199, 255, 0.26);
+    }
+
+    .update-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        opacity 0.24s ease,
+        visibility 0.24s ease;
+    }
+
+    .update-modal.is-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .update-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      border: 0;
+      cursor: pointer;
+      background: rgba(2, 10, 18, 0.76);
+      backdrop-filter: blur(10px);
+    }
+
+    .update-modal-dialog {
+      position: relative;
+      z-index: 1;
+      width: min(650px, 100%);
+      max-height: min(720px, calc(100vh - 56px));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(145, 210, 255, 0.2);
+      border-radius: 24px;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.98), rgba(6, 19, 32, 0.98));
+      box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.56),
+        0 0 44px rgba(88, 199, 255, 0.12);
+      transform: translateY(15px) scale(0.985);
+      transition: transform 0.28s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .update-modal.is-visible .update-modal-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .update-modal-header {
+      padding: 22px 23px 18px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid rgba(145, 210, 255, 0.11);
+    }
+
+    .update-modal-header p {
+      margin: 0 0 5px;
+      color: var(--primary);
+      font-size: 0.64rem;
+      font-weight: 850;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .update-modal-header h2 {
+      margin: 0;
+      font-size: 1.22rem;
+      letter-spacing: -0.035em;
+    }
+
+    .update-modal-header span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.67rem;
+      line-height: 1.45;
+    }
+
+    .update-modal-close {
+      width: 36px;
+      height: 36px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 1.1rem;
+      border: 1px solid rgba(145, 210, 255, 0.12);
+      border-radius: 11px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.025);
+      transition:
+        color 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .update-modal-close:hover {
+      color: var(--text);
+      border-color: rgba(145, 210, 255, 0.3);
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .update-log {
+      padding: 20px 23px 24px;
+      overflow-y: auto;
+    }
+
+    .update-entry {
+      position: relative;
+      padding: 0 0 22px 25px;
+    }
+
+    .update-entry:last-child {
+      padding-bottom: 0;
+    }
+
+    .update-entry::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 7px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 13px rgba(88, 199, 255, 0.5);
+    }
+
+    .update-entry:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 7px;
+      top: 19px;
+      bottom: 2px;
+      width: 1px;
+      background: linear-gradient(
+        to bottom,
+        rgba(88, 199, 255, 0.34),
+        rgba(88, 199, 255, 0.04)
+      );
+    }
+
+    .update-entry-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .update-entry-heading strong {
+      font-size: 0.88rem;
+      letter-spacing: -0.02em;
+    }
+
+    .update-entry-heading time {
+      color: var(--muted);
+      font-size: 0.61rem;
+      white-space: nowrap;
+    }
+
+    .update-entry-subtitle {
+      margin: 5px 0 0;
+      color: rgba(220, 239, 250, 0.72);
+      font-size: 0.67rem;
+      line-height: 1.5;
+    }
+
+    .update-entry ul {
+      margin: 11px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 7px;
+      list-style: none;
+    }
+
+    .update-entry li {
+      position: relative;
+      padding-left: 13px;
+      color: var(--muted);
+      font-size: 0.65rem;
+      line-height: 1.52;
+    }
+
+    .update-entry li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.58em;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(145, 210, 255, 0.55);
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+
+    .compact-screen-notice {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      body:not(.compact-notice-dismissed) .compact-screen-notice {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(circle at 50% 30%, rgba(88, 199, 255, 0.13), transparent 34%),
+          rgba(3, 12, 21, 0.96);
+        backdrop-filter: blur(14px);
+      }
+
+      .compact-screen-card {
+        width: min(430px, 100%);
+        padding: 26px 24px 23px;
+        text-align: center;
+        border: 1px solid rgba(145, 210, 255, 0.2);
+        border-radius: 23px;
+        background:
+          linear-gradient(155deg, rgba(18, 42, 68, 0.97), rgba(7, 21, 34, 0.97));
+        box-shadow:
+          0 28px 70px rgba(0, 0, 0, 0.48),
+          0 0 38px rgba(88, 199, 255, 0.1);
+      }
+
+      .compact-screen-icon {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 15px;
+        display: grid;
+        place-items: center;
+        color: #06101c;
+        font-size: 1.55rem;
+        font-weight: 950;
+        border-radius: 17px;
+        background: var(--primary);
+        box-shadow: 0 0 25px rgba(88, 199, 255, 0.28);
+      }
+
+      .compact-screen-card p {
+        margin: 0 0 5px;
+        color: var(--primary);
+        font-size: 0.62rem;
+        font-weight: 850;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .compact-screen-card h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        letter-spacing: -0.035em;
+      }
+
+      .compact-screen-card span {
+        display: block;
+        margin-top: 9px;
+        color: var(--muted);
+        font-size: 0.72rem;
+        line-height: 1.6;
+      }
+
+      .compact-screen-continue {
+        width: 100%;
+        min-height: 43px;
+        margin-top: 19px;
+        padding: 10px 14px;
+        color: #06101c;
+        font-size: 0.75rem;
+        font-weight: 850;
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        background: linear-gradient(135deg, #88ddff, #37baff);
+      }
+
+      .compact-screen-footnote {
+        margin-top: 10px !important;
+        color: rgba(184, 211, 226, 0.5) !important;
+        font-size: 0.59rem !important;
+      }
+    }
+
+    .copyright {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      width: calc(100% - 40px);
+      transform: translateX(-50%);
+      text-align: center;
+      color: rgba(197, 217, 229, 0.52);
+      font-size: 0.7rem;
+      letter-spacing: 0.02em;
+      line-height: 1.5;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* 주기율표 화면 */
+    .periodic-shell {
+      width: min(1560px, 100%);
+      margin: 0 auto;
+    }
+
+    .periodic-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .back-button,
+    .mini-button {
+      min-height: 42px;
+      padding: 10px 15px;
+      color: var(--text);
+      border: 1px solid rgba(145, 210, 255, 0.18);
+      border-radius: 13px;
+      cursor: pointer;
+      background: rgba(12, 29, 47, 0.68);
+      backdrop-filter: blur(12px);
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .back-button:hover,
+    .mini-button:hover {
+      transform: translateY(-2px);
+      border-color: rgba(88, 199, 255, 0.5);
+      background: rgba(18, 43, 69, 0.88);
+    }
+
+    .periodic-title {
+      text-align: center;
+    }
+
+    .periodic-title p {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .periodic-title h2 {
+      margin: 0;
+      font-size: clamp(1.55rem, 4vw, 2.5rem);
+      letter-spacing: -0.045em;
+    }
+
+    .selection-card {
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 14px;
+      background: rgba(10, 25, 41, 0.68);
+      backdrop-filter: blur(12px);
+      text-align: right;
+    }
+
+    .selection-card small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.68rem;
+      margin-bottom: 3px;
+    }
+
+    .selection-card strong {
+      font-size: 0.9rem;
+    }
+
+    .table-panel {
+      padding: 20px;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(16, 37, 59, 0.76), rgba(7, 20, 33, 0.74));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      overflow-x: auto;
+    }
+
+    .periodic-table {
+      min-width: 1220px;
+      display: grid;
+      grid-template-columns: repeat(18, minmax(54px, 1fr));
+      grid-template-rows: repeat(10, 74px);
+      gap: 7px;
+    }
+
+    .element {
+      position: relative;
+      padding: 7px 6px 6px;
+      overflow: hidden;
+      color: var(--text);
+      text-align: left;
+      border: 1px solid color-mix(in srgb, var(--element-color) 42%, transparent);
+      border-radius: 12px;
+      cursor: pointer;
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in srgb, var(--element-color) 18%, rgba(11, 26, 42, 0.95)),
+          rgba(8, 20, 33, 0.92)
+        );
+      box-shadow:
+        inset 0 1px rgba(255, 255, 255, 0.035),
+        0 8px 18px rgba(0, 0, 0, 0.16);
+      transition:
+        transform 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        filter 0.18s ease;
+    }
+
+    .element::after {
+      content: "";
+      position: absolute;
+      inset: auto -28px -34px auto;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--element-color);
+      opacity: 0.08;
+      filter: blur(3px);
+    }
+
+    .element:hover {
+      z-index: 3;
+      transform: translateY(-4px) scale(1.03);
+      border-color: color-mix(in srgb, var(--element-color) 82%, white 8%);
+      filter: brightness(1.12);
+      box-shadow:
+        0 13px 25px rgba(0, 0, 0, 0.28),
+        0 0 20px color-mix(in srgb, var(--element-color) 24%, transparent);
+    }
+
+    .element.is-selected {
+      z-index: 4;
+      transform: translateY(-3px) scale(1.035);
+      border-color: var(--element-color);
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--element-color) 45%, transparent),
+        0 0 28px color-mix(in srgb, var(--element-color) 32%, transparent);
+    }
+
+    .atomic-number {
+      display: block;
+      color: rgba(231, 246, 255, 0.72);
+      font-size: 0.62rem;
+      line-height: 1;
+    }
+
+    .element-symbol {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.35rem;
+      font-weight: 850;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .element-name {
+      display: block;
+      margin-top: 5px;
+      color: rgba(225, 240, 250, 0.76);
+      font-size: 0.55rem;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .series-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.64rem;
+      line-height: 1.25;
+      border: 1px dashed rgba(145, 210, 255, 0.18);
+      border-radius: 11px;
+      background: rgba(8, 20, 33, 0.5);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 13px;
+      margin-top: 16px;
+      padding: 0 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.68rem;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--legend-color);
+      box-shadow: 0 0 10px color-mix(in srgb, var(--legend-color) 55%, transparent);
+    }
+
+    .periodic-note {
+      margin: 13px 0 0;
+      color: rgba(191, 215, 229, 0.58);
+      text-align: center;
+      font-size: 0.7rem;
+    }
+
+
+    /* 플로팅 보조 기능 */
+    .floating-feedback {
+      position: fixed;
+      left: 28px;
+      bottom: 54px;
+      z-index: 40;
+      padding: 10px 14px;
+      color: rgba(224, 241, 250, 0.72);
+      font-size: 0.78rem;
+      font-weight: 750;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 13px;
+      cursor: pointer;
+      background: rgba(9, 24, 39, 0.70);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.20);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px);
+      transition:
+        opacity 0.28s ease,
+        transform 0.28s ease,
+        visibility 0.28s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .floating-feedback.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .floating-feedback:hover {
+      color: var(--text);
+      border-color: rgba(88, 199, 255, 0.42);
+      background: rgba(16, 38, 61, 0.90);
+    }
+
+    .next-panel {
+      position: fixed;
+      right: 28px;
+      bottom: 54px;
+      z-index: 42;
+      width: 290px;
+      padding: 15px;
+      border: 1px solid rgba(145, 210, 255, 0.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.91), rgba(7, 21, 34, 0.88));
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.34),
+        0 0 30px color-mix(in srgb, var(--selected-color, var(--primary)) 18%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px) scale(0.98);
+      transition:
+        opacity 0.34s ease,
+        transform 0.34s cubic-bezier(.2, .8, .2, 1),
+        visibility 0.34s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+    }
+
+    .next-panel.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      border-color: color-mix(in srgb, var(--selected-color, var(--primary)) 50%, transparent);
+    }
+
+    .next-panel-label {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.66rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .next-panel-element {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 13px;
+    }
+
+    .next-panel-symbol {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: #04131f;
+      font-size: 1.25rem;
+      font-weight: 900;
+      border-radius: 14px;
+      background: var(--selected-color, var(--primary));
+      box-shadow:
+        0 8px 20px color-mix(in srgb, var(--selected-color, var(--primary)) 28%, transparent),
+        inset 0 1px rgba(255, 255, 255, 0.6);
+    }
+
+    .next-panel-info strong {
+      display: block;
+      font-size: 0.96rem;
+      line-height: 1.2;
+    }
+
+    .next-panel-info span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .next-button {
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 16px;
+      color: #04131f;
+      font-size: 0.9rem;
+      font-weight: 850;
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      background:
+        linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--selected-color, var(--primary)) 78%, white 22%),
+          var(--selected-color, var(--primary))
+        );
+      box-shadow:
+        0 10px 24px color-mix(in srgb, var(--selected-color, var(--primary)) 26%, transparent),
+        inset 0 1px rgba(255, 255, 255, 0.68);
+      transition:
+        transform 0.2s ease,
+        filter 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .next-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow:
+        0 14px 28px color-mix(in srgb, var(--selected-color, var(--primary)) 34%, transparent),
+        inset 0 1px rgba(255, 255, 255, 0.72);
+    }
+
+
+
+    /* 주양자수 선택 화면 */
+    #quantumScreen {
+      overflow: hidden;
+      transform: translateX(34px) scale(0.985);
+    }
+
+    #quantumScreen.is-visible {
+      transform: translateX(0) scale(1);
+    }
+
+    .quantum-shell {
+      width: min(1480px, 100%);
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .quantum-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 18px;
+      flex: 0 0 auto;
+      margin-bottom: 16px;
+    }
+
+    .quantum-title {
+      text-align: center;
+    }
+
+    .quantum-title p {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .quantum-title h2 {
+      margin: 0;
+      font-size: clamp(1.65rem, 3vw, 2.55rem);
+      letter-spacing: -0.045em;
+    }
+
+    .quantum-title span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 550;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    .quantum-element-card {
+      min-width: 220px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 14px;
+      background: rgba(10, 25, 41, 0.68);
+      backdrop-filter: blur(12px);
+    }
+
+    .quantum-element-symbol {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: #06101c;
+      font-size: 1rem;
+      font-weight: 900;
+      border-radius: 11px;
+      background: var(--quantum-color, var(--primary));
+      box-shadow: 0 0 18px color-mix(in srgb, var(--quantum-color, var(--primary)) 26%, transparent);
+    }
+
+    .quantum-element-copy {
+      text-align: right;
+    }
+
+    .quantum-element-copy small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.65rem;
+      margin-bottom: 2px;
+    }
+
+    .quantum-element-copy strong {
+      font-size: 0.85rem;
+    }
+
+    .atom-workspace {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 50% 48%, rgba(88, 199, 255, 0.08), transparent 27%),
+        linear-gradient(180deg, rgba(15, 35, 56, 0.76), rgba(6, 18, 30, 0.76));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .atom-workspace::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image:
+        radial-gradient(circle, rgba(196, 230, 250, 0.46) 0.7px, transparent 0.8px);
+      background-size: 34px 34px;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 76%);
+    }
+
+    .atom-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    #atomCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .atom-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 132px;
+      height: 132px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 58%, transparent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background:
+        radial-gradient(
+          circle at 38% 32%,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 55%, white 20%),
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, rgba(7, 19, 31, 0.95)) 45%,
+          rgba(5, 15, 25, 0.96) 74%
+        );
+      box-shadow:
+        0 0 34px color-mix(in srgb, var(--quantum-color, var(--primary)) 34%, transparent),
+        0 0 90px color-mix(in srgb, var(--quantum-color, var(--primary)) 12%, transparent),
+        inset 0 0 28px rgba(255, 255, 255, 0.08);
+      z-index: 8;
+    }
+
+    .atom-core::before,
+    .atom-core::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .atom-core::before {
+      inset: -13px;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+      animation: corePulse 3.2s ease-in-out infinite;
+    }
+
+    .atom-core::after {
+      inset: 15px;
+      background: radial-gradient(circle, rgba(255,255,255,0.10), transparent 68%);
+    }
+
+    @keyframes corePulse {
+      0%, 100% {
+        opacity: 0.35;
+        transform: scale(0.96);
+      }
+      50% {
+        opacity: 0.9;
+        transform: scale(1.07);
+      }
+    }
+
+    .core-copy {
+      position: relative;
+      z-index: 2;
+    }
+
+    .core-number {
+      display: block;
+      color: rgba(231, 246, 255, 0.72);
+      font-size: 0.72rem;
+      font-weight: 750;
+    }
+
+    .core-symbol {
+      display: block;
+      margin: 2px 0;
+      font-size: 2.25rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .core-name {
+      display: block;
+      color: rgba(231, 246, 255, 0.8);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .quantum-nodes {
+      position: absolute;
+      inset: 0;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .quantum-node {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px 7px 8px;
+      color: rgba(225, 240, 250, 0.74);
+      border: 1px solid transparent;
+      border-radius: 999px;
+      cursor: pointer;
+      background: rgba(6, 18, 30, 0.48);
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+      transform: translate(-50%, -50%);
+      transition:
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .quantum-node:hover {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 35%, transparent);
+      background: rgba(14, 35, 56, 0.82);
+      transform: translate(-50%, -50%) scale(1.04);
+    }
+
+    .quantum-node.is-selected {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 68%, transparent);
+      background:
+        linear-gradient(
+          135deg,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 14%, rgba(12, 29, 47, 0.92)),
+          rgba(7, 20, 33, 0.94)
+        );
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--quantum-color, var(--primary)) 14%, transparent),
+        0 0 26px color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+    }
+
+    .radio-ring {
+      width: 18px;
+      height: 18px;
+      position: relative;
+      flex: 0 0 auto;
+      border: 2px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 68%, rgba(214, 238, 252, 0.7));
+      border-radius: 50%;
+      box-shadow: 0 0 10px color-mix(in srgb, var(--quantum-color, var(--primary)) 15%, transparent);
+    }
+
+    .quantum-node.is-selected .radio-ring::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--quantum-color, var(--primary));
+      box-shadow: 0 0 12px var(--quantum-color, var(--primary));
+    }
+
+    .node-copy strong {
+      display: block;
+      font-size: 0.83rem;
+      line-height: 1.1;
+    }
+
+    .node-copy small {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.62rem;
+    }
+
+    .atom-legend-card {
+      position: absolute;
+      left: 22px;
+      top: 22px;
+      z-index: 16;
+      width: 230px;
+      padding: 14px;
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      border-radius: 16px;
+      background: rgba(7, 20, 33, 0.62);
+      backdrop-filter: blur(12px);
+    }
+
+    .atom-legend-card p {
+      margin: 0 0 8px;
+      color: var(--primary);
+      font-size: 0.64rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .atom-legend-card strong {
+      display: block;
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+
+    .atom-legend-card span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.7rem;
+      line-height: 1.45;
+    }
+
+    .model-disclaimer {
+      position: absolute;
+      left: 50%;
+      bottom: 16px;
+      z-index: 16;
+      transform: translateX(-50%);
+      color: rgba(191, 215, 229, 0.52);
+      font-size: 0.66rem;
+      white-space: nowrap;
+    }
+
+    .shell-next-panel {
+      position: fixed;
+      right: 28px;
+      bottom: 54px;
+      z-index: 45;
+      width: 310px;
+      padding: 15px;
+      border: 1px solid rgba(145, 210, 255, 0.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.92), rgba(7, 21, 34, 0.90));
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.34),
+        0 0 30px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px) scale(0.98);
+      transition:
+        opacity 0.34s ease,
+        transform 0.34s cubic-bezier(.2, .8, .2, 1),
+        visibility 0.34s ease,
+        border-color 0.25s ease;
+    }
+
+    .shell-next-panel.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 48%, transparent);
+    }
+
+    .shell-next-panel .shell-choice-title {
+      display: block;
+      font-size: 1.04rem;
+      line-height: 1.25;
+    }
+
+    .shell-next-panel .shell-choice-config {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.45;
+      min-height: 18px;
+    }
+
+
+    /* 오비탈 선택 화면 */
+    #orbitalScreen,
+    #electronScreen {
+      overflow: hidden;
+      transform: translateX(34px) scale(0.985);
+    }
+
+    #orbitalScreen.is-visible,
+    #electronScreen.is-visible {
+      transform: translateX(0) scale(1);
+    }
+
+    .selection-shell {
+      width: min(1420px, 100%);
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .selection-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 18px;
+      flex: 0 0 auto;
+      margin-bottom: 18px;
+    }
+
+    .selection-title {
+      text-align: center;
+    }
+
+    .selection-title p {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 850;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .selection-title h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.55rem);
+      letter-spacing: -0.045em;
+    }
+
+    .selection-title span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
+
+    .selection-summary {
+      min-width: 230px;
+      padding: 10px 14px;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 14px;
+      background: rgba(10, 25, 41, 0.68);
+      backdrop-filter: blur(12px);
+      text-align: right;
+    }
+
+    .selection-summary small {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 0.65rem;
+    }
+
+    .selection-summary strong {
+      font-size: 0.86rem;
+    }
+
+    .selection-workspace {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+      padding: 30px;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(88, 199, 255, 0.075), transparent 31%),
+        linear-gradient(180deg, rgba(15, 35, 56, 0.76), rgba(6, 18, 30, 0.76));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .selection-workspace::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.24;
+      background-image:
+        radial-gradient(circle, rgba(196, 230, 250, 0.42) 0.7px, transparent 0.8px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at center, black 0%, transparent 77%);
+    }
+
+    .orbital-intro {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .orbital-intro strong {
+      display: block;
+      font-size: 1rem;
+      letter-spacing: -0.025em;
+    }
+
+    .orbital-intro span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .orbital-grid {
+      position: relative;
+      z-index: 2;
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(190px, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .orbital-card {
+      position: relative;
+      min-height: 330px;
+      padding: 22px 18px 18px;
+      overflow: hidden;
+      color: var(--text);
+      text-align: center;
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 22px;
+      cursor: pointer;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.86), rgba(7, 21, 34, 0.84));
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.24),
+        inset 0 1px rgba(255, 255, 255, 0.035);
+      transition:
+        transform 0.23s ease,
+        border-color 0.23s ease,
+        box-shadow 0.23s ease,
+        filter 0.23s ease,
+        opacity 0.23s ease;
+    }
+
+    .orbital-card:hover:not(:disabled) {
+      transform: translateY(-7px);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 54%, transparent);
+      box-shadow:
+        0 22px 44px rgba(0, 0, 0, 0.32),
+        0 0 28px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent);
+    }
+
+    .orbital-card.is-selected {
+      transform: translateY(-5px);
+      border-color: var(--quantum-color, var(--primary));
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent),
+        0 0 36px color-mix(in srgb, var(--quantum-color, var(--primary)) 28%, transparent),
+        0 20px 42px rgba(0, 0, 0, 0.3);
+    }
+
+    .orbital-card:disabled {
+      cursor: not-allowed;
+      opacity: 0.34;
+      filter: grayscale(0.45);
+    }
+
+    .orbital-letter {
+      display: inline-grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      margin-bottom: 14px;
+      color: #06101c;
+      font-size: 1.45rem;
+      font-weight: 950;
+      border-radius: 14px;
+      background: var(--quantum-color, var(--primary));
+      box-shadow:
+        0 9px 22px color-mix(in srgb, var(--quantum-color, var(--primary)) 26%, transparent),
+        inset 0 1px rgba(255, 255, 255, 0.62);
+    }
+
+    .orbital-visual {
+      position: relative;
+      width: 170px;
+      height: 150px;
+      margin: 0 auto 14px;
+      filter: drop-shadow(0 0 18px color-mix(in srgb, var(--quantum-color, var(--primary)) 22%, transparent));
+    }
+
+    .orbital-shape {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .shape-s {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 72%, white 8%);
+      background:
+        radial-gradient(circle at 38% 33%,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 62%, white 20%),
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent) 48%,
+          rgba(5, 16, 27, 0.12) 72%);
+      box-shadow:
+        inset 0 0 24px rgba(255, 255, 255, 0.08),
+        0 0 28px color-mix(in srgb, var(--quantum-color, var(--primary)) 25%, transparent);
+    }
+
+    .shape-p::before,
+    .shape-p::after,
+    .shape-d .lobe,
+    .shape-f .lobe {
+      content: "";
+      position: absolute;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 70%, white 8%);
+      background:
+        radial-gradient(circle at 35% 30%,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 56%, white 17%),
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 14%, transparent) 68%);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--quantum-color, var(--primary)) 20%, transparent);
+    }
+
+    .shape-p {
+      width: 138px;
+      height: 72px;
+    }
+
+    .shape-p::before,
+    .shape-p::after {
+      width: 68px;
+      height: 58px;
+      top: 7px;
+      border-radius: 68% 32% 32% 68%;
+    }
+
+    .shape-p::before {
+      left: 0;
+    }
+
+    .shape-p::after {
+      right: 0;
+      transform: scaleX(-1);
+    }
+
+    .shape-d {
+      width: 138px;
+      height: 138px;
+    }
+
+    .shape-d .lobe {
+      width: 64px;
+      height: 46px;
+      border-radius: 70% 30% 60% 40%;
+      transform-origin: 100% 50%;
+    }
+
+    .shape-d .lobe:nth-child(1) {
+      left: 2px;
+      top: 21px;
+      transform: rotate(42deg);
+    }
+
+    .shape-d .lobe:nth-child(2) {
+      right: 2px;
+      top: 21px;
+      transform: rotate(138deg);
+    }
+
+    .shape-d .lobe:nth-child(3) {
+      left: 2px;
+      bottom: 21px;
+      transform: rotate(-42deg);
+    }
+
+    .shape-d .lobe:nth-child(4) {
+      right: 2px;
+      bottom: 21px;
+      transform: rotate(-138deg);
+    }
+
+    .shape-f {
+      width: 154px;
+      height: 138px;
+    }
+
+    .shape-f .lobe {
+      width: 56px;
+      height: 36px;
+      left: 49px;
+      top: 51px;
+      border-radius: 75% 25% 68% 32%;
+      transform-origin: 28px 18px;
+    }
+
+    .shape-f .lobe:nth-child(1) { transform: rotate(0deg) translateX(46px); }
+    .shape-f .lobe:nth-child(2) { transform: rotate(60deg) translateX(46px); }
+    .shape-f .lobe:nth-child(3) { transform: rotate(120deg) translateX(46px); }
+    .shape-f .lobe:nth-child(4) { transform: rotate(180deg) translateX(46px); }
+    .shape-f .lobe:nth-child(5) { transform: rotate(240deg) translateX(46px); }
+    .shape-f .lobe:nth-child(6) { transform: rotate(300deg) translateX(46px); }
+
+    .orbital-card h3 {
+      margin: 0;
+      font-size: 1.04rem;
+      letter-spacing: -0.025em;
+    }
+
+    .orbital-card p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.45;
+    }
+
+    .orbital-status {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 6px 9px;
+      color: rgba(230, 246, 255, 0.78);
+      font-size: 0.64rem;
+      font-weight: 750;
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .orbital-card.is-selected .orbital-status {
+      color: #06101c;
+      border-color: transparent;
+      background: var(--quantum-color, var(--primary));
+    }
+
+    .orbital-note {
+      position: absolute;
+      left: 50%;
+      bottom: 17px;
+      z-index: 4;
+      transform: translateX(-50%);
+      color: rgba(191, 215, 229, 0.52);
+      font-size: 0.66rem;
+      white-space: nowrap;
+    }
+
+    .orbital-next-panel,
+    .electron-next-panel {
+      position: fixed;
+      right: 28px;
+      bottom: 54px;
+      z-index: 46;
+      width: 310px;
+      padding: 15px;
+      border: 1px solid rgba(145, 210, 255, 0.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.92), rgba(7, 21, 34, 0.90));
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.34),
+        0 0 30px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px) scale(0.98);
+      transition:
+        opacity 0.34s ease,
+        transform 0.34s cubic-bezier(.2, .8, .2, 1),
+        visibility 0.34s ease,
+        border-color 0.25s ease;
+    }
+
+    .orbital-next-panel.is-visible,
+    .electron-next-panel.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 48%, transparent);
+    }
+
+    .floating-choice-title {
+      display: block;
+      font-size: 1.04rem;
+      line-height: 1.25;
+    }
+
+    .floating-choice-copy {
+      display: block;
+      min-height: 18px;
+      margin: 4px 0 12px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.45;
+    }
+
+    /* 전자 선택 화면 */
+    .electron-workspace {
+      display: grid;
+      grid-template-columns: minmax(420px, 0.95fr) minmax(520px, 1.2fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .orbital-diagram-panel,
+    .electron-picker-panel {
+      position: relative;
+      z-index: 2;
+      min-height: 440px;
+      padding: 24px;
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      border-radius: 22px;
+      background: rgba(7, 20, 33, 0.56);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-kicker {
+      margin: 0 0 5px;
+      color: var(--primary);
+      font-size: 0.66rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .diagram-title,
+    .picker-title {
+      margin: 0;
+      font-size: 1.16rem;
+      letter-spacing: -0.03em;
+    }
+
+    .diagram-copy,
+    .picker-copy {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 0.74rem;
+      line-height: 1.55;
+    }
+
+    .orbital-boxes {
+      min-height: 230px;
+      margin-top: 34px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .orbital-box {
+      width: 58px;
+      height: 86px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 4px;
+      padding: 8px 5px 7px;
+      border: 2px solid rgba(189, 224, 244, 0.46);
+      border-radius: 8px 8px 4px 4px;
+      background:
+        linear-gradient(180deg, rgba(88, 199, 255, 0.05), rgba(255, 255, 255, 0.018));
+      box-shadow: inset 0 -12px 18px rgba(0, 0, 0, 0.12);
+    }
+
+    .electron-arrow {
+      position: relative;
+      width: 19px;
+      height: 59px;
+      display: flex;
+      justify-content: center;
+      color: rgba(220, 240, 252, 0.72);
+      font-size: 2.25rem;
+      line-height: 1;
+      text-shadow: 0 0 9px rgba(88, 199, 255, 0.25);
+      transition:
+        color 0.2s ease,
+        transform 0.2s ease,
+        text-shadow 0.2s ease;
+    }
+
+    .electron-arrow.is-selected {
+      color: var(--quantum-color, var(--primary));
+      transform: translateY(-4px) scale(1.14);
+      text-shadow: 0 0 16px var(--quantum-color, var(--primary));
+    }
+
+    .electron-arrow-number {
+      position: absolute;
+      left: 50%;
+      bottom: -24px;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-size: 0.58rem;
+      font-weight: 750;
+      text-shadow: none;
+    }
+
+    .electron-arrow.is-selected .electron-arrow-number {
+      color: var(--quantum-color, var(--primary));
+    }
+
+    .diagram-caption {
+      margin-top: 42px;
+      text-align: center;
+      color: rgba(205, 229, 243, 0.68);
+      font-size: 0.7rem;
+      line-height: 1.55;
+    }
+
+    .electron-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(72px, 1fr));
+      gap: 11px;
+    }
+
+    .electron-choice {
+      min-height: 84px;
+      padding: 10px 8px;
+      color: var(--text);
+      border: 1px solid rgba(145, 210, 255, 0.16);
+      border-radius: 15px;
+      cursor: pointer;
+      background:
+        linear-gradient(150deg, rgba(17, 39, 63, 0.78), rgba(7, 21, 34, 0.78));
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .electron-choice:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 45%, transparent);
+    }
+
+    .electron-choice.is-selected {
+      transform: translateY(-3px);
+      border-color: var(--quantum-color, var(--primary));
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, rgba(15, 35, 56, 0.92)),
+          rgba(7, 21, 34, 0.92)
+        );
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--quantum-color, var(--primary)) 15%, transparent),
+        0 0 24px color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+    }
+
+    .electron-choice strong {
+      display: block;
+      font-size: 1rem;
+    }
+
+    .electron-choice span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.62rem;
+    }
+
+    .electron-choice.is-selected span {
+      color: rgba(226, 243, 252, 0.82);
+    }
+
+    .equivalence-note {
+      margin: 18px 0 0;
+      padding: 12px 13px;
+      color: rgba(207, 231, 244, 0.72);
+      font-size: 0.68rem;
+      line-height: 1.5;
+      border: 1px solid rgba(145, 210, 255, 0.12);
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+
+    /* 계산 방식 선택 화면 */
+    #calculationModeScreen {
+      overflow: hidden;
+      transform: translateX(34px) scale(0.985);
+    }
+
+    #calculationModeScreen.is-visible {
+      transform: translateX(0) scale(1);
+    }
+
+    .mode-workspace {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+      padding: 24px 28px 27px;
+    }
+
+    .target-overview {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 17px;
+      padding: 15px 17px;
+      border: 1px solid rgba(145, 210, 255, 0.15);
+      border-radius: 18px;
+      background:
+        linear-gradient(145deg, rgba(17, 39, 63, 0.73), rgba(7, 21, 34, 0.72));
+    }
+
+    .target-element-tile {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      color: #06101c;
+      font-size: 1.4rem;
+      font-weight: 950;
+      border-radius: 17px;
+      background: var(--quantum-color, var(--primary));
+      box-shadow:
+        0 10px 24px color-mix(in srgb, var(--quantum-color, var(--primary)) 27%, transparent),
+        inset 0 1px rgba(255, 255, 255, 0.66);
+    }
+
+    .target-overview-copy {
+      min-width: 0;
+    }
+
+    .target-overview-copy small {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--primary);
+      font-size: 0.64rem;
+      font-weight: 850;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .target-overview-copy strong {
+      display: block;
+      font-size: 0.98rem;
+      letter-spacing: -0.02em;
+    }
+
+    .target-overview-copy span {
+      display: block;
+      margin-top: 5px;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.7rem;
+      line-height: 1.45;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .neutral-badge {
+      padding: 8px 11px;
+      color: rgba(223, 241, 251, 0.76);
+      font-size: 0.67rem;
+      font-weight: 760;
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      white-space: nowrap;
+    }
+
+    .mode-selector-section {
+      position: relative;
+      z-index: 2;
+      width: min(820px, 100%);
+      margin: 0 auto;
+    }
+
+    .mode-selector-heading {
+      margin-bottom: 11px;
+      text-align: center;
+    }
+
+    .mode-selector-heading strong {
+      display: block;
+      font-size: 0.94rem;
+      letter-spacing: -0.02em;
+    }
+
+    .mode-selector-heading span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.68rem;
+    }
+
+    .mode-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .mode-option {
+      position: relative;
+      min-height: 88px;
+      padding: 15px 17px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 13px;
+      color: var(--text);
+      text-align: left;
+      border: 1px solid rgba(145, 210, 255, 0.15);
+      border-radius: 17px;
+      cursor: pointer;
+      background:
+        linear-gradient(150deg, rgba(17, 39, 63, 0.76), rgba(7, 21, 34, 0.75));
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+      transition:
+        transform 0.22s ease,
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease;
+    }
+
+    .mode-option:hover {
+      transform: translateY(-3px);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 42%, transparent);
+    }
+
+    .mode-option.is-selected {
+      transform: translateY(-3px);
+      border-color: var(--quantum-color, var(--primary));
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 17%, rgba(17, 39, 63, 0.9)),
+          rgba(7, 21, 34, 0.9)
+        );
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--quantum-color, var(--primary)) 14%, transparent),
+        0 0 28px color-mix(in srgb, var(--quantum-color, var(--primary)) 22%, transparent),
+        0 17px 34px rgba(0, 0, 0, 0.24);
+    }
+
+    .mode-radio {
+      width: 22px;
+      height: 22px;
+      position: relative;
+      border: 2px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 64%, rgba(220, 241, 252, 0.64));
+      border-radius: 50%;
+      box-shadow: 0 0 12px color-mix(in srgb, var(--quantum-color, var(--primary)) 15%, transparent);
+    }
+
+    .mode-option.is-selected .mode-radio::after {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: var(--quantum-color, var(--primary));
+      box-shadow: 0 0 13px var(--quantum-color, var(--primary));
+    }
+
+    .mode-option-copy strong {
+      display: block;
+      font-size: 0.94rem;
+      letter-spacing: -0.02em;
+    }
+
+    .mode-option-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.66rem;
+      line-height: 1.4;
+    }
+
+    .mode-description {
+      min-height: 76px;
+      margin-top: 13px;
+      padding: 15px 17px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 13px;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+      border-radius: 16px;
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 8%, rgba(8, 23, 38, 0.76)),
+          rgba(5, 17, 29, 0.71)
+        );
+      transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        border-color 0.22s ease;
+    }
+
+    .mode-description.is-changing {
+      opacity: 0.12;
+      transform: translateY(4px);
+    }
+
+    .mode-description-icon {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      color: #06101c;
+      font-size: 1rem;
+      font-weight: 950;
+      border-radius: 12px;
+      background: var(--quantum-color, var(--primary));
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+    }
+
+    .mode-description-copy strong {
+      display: block;
+      font-size: 0.82rem;
+    }
+
+    .mode-description-copy p {
+      margin: 4px 0 0;
+      color: rgba(213, 234, 246, 0.74);
+      font-size: 0.71rem;
+      line-height: 1.5;
+    }
+
+    .slater-preview {
+      position: relative;
+      z-index: 2;
+      min-height: 0;
+      padding: 16px 17px 14px;
+      border: 1px solid rgba(145, 210, 255, 0.13);
+      border-radius: 19px;
+      background: rgba(7, 20, 33, 0.52);
+      overflow: hidden;
+    }
+
+    .slater-preview-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 13px;
+    }
+
+    .slater-preview-header p {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 0.63rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .slater-preview-header h3 {
+      margin: 0;
+      font-size: 0.99rem;
+      letter-spacing: -0.025em;
+    }
+
+    .slater-preview-header span {
+      color: var(--muted);
+      font-size: 0.65rem;
+      white-space: nowrap;
+    }
+
+    .slater-groups {
+      display: flex;
+      align-items: stretch;
+      gap: 9px;
+      overflow-x: auto;
+      padding: 4px 2px 9px;
+      scrollbar-width: thin;
+    }
+
+    .slater-group-card {
+      min-width: 112px;
+      flex: 1 0 112px;
+      padding: 11px 10px;
+      text-align: center;
+      border: 1px solid rgba(145, 210, 255, 0.13);
+      border-radius: 13px;
+      background:
+        linear-gradient(150deg, rgba(17, 39, 63, 0.64), rgba(7, 21, 34, 0.63));
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .slater-group-card.is-target {
+      transform: translateY(-2px);
+      border-color: var(--quantum-color, var(--primary));
+      box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--quantum-color, var(--primary)) 12%, transparent),
+        0 0 22px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent);
+    }
+
+    .slater-group-card strong {
+      display: block;
+      font-size: 0.77rem;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .slater-group-card span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.59rem;
+    }
+
+    .slater-group-card.is-target span {
+      color: var(--quantum-color, var(--primary));
+      font-weight: 800;
+    }
+
+    .mode-next-panel {
+      position: fixed;
+      right: 28px;
+      bottom: 54px;
+      z-index: 47;
+      width: 320px;
+      padding: 15px;
+      border: 1px solid rgba(145, 210, 255, 0.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.93), rgba(7, 21, 34, 0.91));
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.34),
+        0 0 30px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px) scale(0.98);
+      transition:
+        opacity 0.34s ease,
+        transform 0.34s cubic-bezier(.2, .8, .2, 1),
+        visibility 0.34s ease,
+        border-color 0.25s ease;
+    }
+
+    .mode-next-panel.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 48%, transparent);
+    }
+
+
+    /* 자동 계산, 학습 모드, 최종 결과 */
+    #learningScreen,
+    #resultScreen {
+      overflow: hidden;
+      transform: translateX(34px) scale(0.985);
+    }
+
+    #learningScreen.is-visible,
+    #resultScreen.is-visible {
+      transform: translateX(0) scale(1);
+    }
+
+    .calculation-workspace {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 18px;
+      padding: 24px 27px 26px;
+    }
+
+    .calculation-target-strip {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 15px;
+      padding: 13px 15px;
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      border-radius: 17px;
+      background:
+        linear-gradient(145deg, rgba(17, 39, 63, 0.72), rgba(7, 21, 34, 0.71));
+    }
+
+    .calculation-target-symbol {
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      color: #06101c;
+      font-size: 1.22rem;
+      font-weight: 950;
+      border-radius: 15px;
+      background: var(--quantum-color, var(--primary));
+      box-shadow:
+        0 9px 22px color-mix(in srgb, var(--quantum-color, var(--primary)) 26%, transparent),
+        inset 0 1px rgba(255, 255, 255, 0.65);
+    }
+
+    .calculation-target-copy small {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--primary);
+      font-size: 0.61rem;
+      font-weight: 850;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .calculation-target-copy strong {
+      display: block;
+      font-size: 0.91rem;
+      letter-spacing: -0.02em;
+    }
+
+    .calculation-target-copy span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.66rem;
+    }
+
+    .mode-badge {
+      padding: 7px 10px;
+      color: rgba(225, 242, 251, 0.8);
+      font-size: 0.64rem;
+      font-weight: 790;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 25%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--quantum-color, var(--primary)) 7%, rgba(7, 20, 33, 0.8));
+      white-space: nowrap;
+    }
+
+    .learning-layout {
+      position: relative;
+      z-index: 2;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+    }
+
+    .coefficient-panel,
+    .learning-guide-panel {
+      min-height: 0;
+      border: 1px solid rgba(145, 210, 255, 0.13);
+      border-radius: 20px;
+      background: rgba(7, 20, 33, 0.52);
+    }
+
+    .coefficient-panel {
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .learning-guide-panel {
+      padding: 19px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inner-section-header p {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 0.62rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .inner-section-header h3 {
+      margin: 0;
+      font-size: 1.02rem;
+      letter-spacing: -0.025em;
+    }
+
+    .inner-section-header span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 0.67rem;
+      line-height: 1.45;
+    }
+
+    .learning-group-list {
+      margin-top: 15px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .learning-group-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 0.8fr) minmax(310px, 1.5fr) 110px;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 12px;
+      border: 1px solid rgba(145, 210, 255, 0.12);
+      border-radius: 14px;
+      background:
+        linear-gradient(145deg, rgba(17, 39, 63, 0.61), rgba(7, 21, 34, 0.6));
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .learning-group-row.is-target {
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 46%, transparent);
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 10%, rgba(17, 39, 63, 0.7)),
+          rgba(7, 21, 34, 0.67)
+        );
+    }
+
+    .learning-group-row.is-correct {
+      border-color: rgba(101, 223, 176, 0.55);
+      box-shadow: 0 0 18px rgba(101, 223, 176, 0.08);
+    }
+
+    .learning-group-row.is-wrong {
+      border-color: rgba(255, 132, 132, 0.62);
+      box-shadow: 0 0 18px rgba(255, 132, 132, 0.08);
+    }
+
+    .learning-group-info strong {
+      display: block;
+      font-size: 0.77rem;
+      line-height: 1.3;
+    }
+
+    .learning-group-info span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.59rem;
+      line-height: 1.35;
+    }
+
+    .coefficient-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .coefficient-button {
+      min-width: 52px;
+      height: 33px;
+      padding: 0 8px;
+      color: rgba(220, 239, 250, 0.76);
+      font-size: 0.65rem;
+      font-weight: 780;
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      border-radius: 9px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.025);
+      transition:
+        transform 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .coefficient-button:hover {
+      transform: translateY(-2px);
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 42%, transparent);
+    }
+
+    .coefficient-button.is-selected {
+      color: #06101c;
+      border-color: transparent;
+      background: var(--quantum-color, var(--primary));
+      box-shadow: 0 0 15px color-mix(in srgb, var(--quantum-color, var(--primary)) 23%, transparent);
+    }
+
+    .learning-contribution {
+      text-align: right;
+    }
+
+    .learning-contribution strong {
+      display: block;
+      font-size: 0.76rem;
+    }
+
+    .learning-contribution span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.57rem;
+    }
+
+
+    .learning-hint-button {
+      display: none;
+      width: 100%;
+      min-height: 40px;
+      margin-top: 15px;
+      padding: 9px 12px;
+      color: var(--quantum-color, var(--primary));
+      font-size: 0.71rem;
+      font-weight: 820;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 35%, transparent);
+      border-radius: 11px;
+      cursor: pointer;
+      background: color-mix(in srgb, var(--quantum-color, var(--primary)) 6%, rgba(7, 20, 33, 0.72));
+      transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .learning-hint-button.is-visible {
+      display: block;
+      animation: hintButtonIn 0.25s ease both;
+    }
+
+    .learning-hint-button:hover {
+      transform: translateY(-2px);
+      border-color: var(--quantum-color, var(--primary));
+      background: color-mix(in srgb, var(--quantum-color, var(--primary)) 11%, rgba(7, 20, 33, 0.78));
+    }
+
+    @keyframes hintButtonIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .learning-rule-card {
+      display: none;
+      margin-top: 11px;
+      padding: 13px;
+      border: 1px solid rgba(145, 210, 255, 0.12);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .learning-rule-card.is-visible {
+      display: block;
+      animation: hintCardIn 0.28s ease both;
+    }
+
+    @keyframes hintCardIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .learning-rule-card strong {
+      display: block;
+      font-size: 0.75rem;
+    }
+
+    .learning-rule-card p {
+      margin: 7px 0 0;
+      color: rgba(210, 232, 245, 0.72);
+      font-size: 0.65rem;
+      line-height: 1.55;
+    }
+
+    .learning-progress {
+      margin-top: 16px;
+    }
+
+    .learning-progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.61rem;
+    }
+
+    .learning-progress-track {
+      height: 7px;
+      margin-top: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .learning-progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--quantum-color, var(--primary));
+      box-shadow: 0 0 14px color-mix(in srgb, var(--quantum-color, var(--primary)) 35%, transparent);
+      transition: width 0.25s ease;
+    }
+
+    .learning-check-button {
+      width: 100%;
+      min-height: 44px;
+      margin-top: auto;
+      padding: 11px 14px;
+      color: #06101c;
+      font-size: 0.77rem;
+      font-weight: 850;
+      border: 0;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #85dcff, #35b9ff);
+      transition:
+        transform 0.2s ease,
+        filter 0.2s ease;
+    }
+
+    .learning-check-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+
+    .learning-status {
+      min-height: 42px;
+      margin-top: 11px;
+      padding: 10px 11px;
+      color: var(--muted);
+      font-size: 0.64rem;
+      line-height: 1.45;
+      border: 1px solid rgba(145, 210, 255, 0.1);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .learning-status.success {
+      color: #94e7c8;
+      border-color: rgba(101, 223, 176, 0.32);
+    }
+
+    .learning-status.error {
+      color: #ffaaaa;
+      border-color: rgba(255, 132, 132, 0.32);
+    }
+
+    .learning-result-panel {
+      position: fixed;
+      right: 28px;
+      bottom: 54px;
+      z-index: 48;
+      width: 320px;
+      padding: 15px;
+      border: 1px solid rgba(145, 210, 255, 0.18);
+      border-radius: 18px;
+      background:
+        linear-gradient(160deg, rgba(17, 39, 63, 0.93), rgba(7, 21, 34, 0.91));
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.34),
+        0 0 30px color-mix(in srgb, var(--quantum-color, var(--primary)) 18%, transparent);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(16px) scale(0.98);
+      transition:
+        opacity 0.34s ease,
+        transform 0.34s cubic-bezier(.2, .8, .2, 1),
+        visibility 0.34s ease,
+        border-color 0.25s ease;
+    }
+
+    .learning-result-panel.is-visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 48%, transparent);
+    }
+
+    /* 최종 결과 */
+    .result-workspace {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 19px;
+      padding: 24px 27px 26px;
+    }
+
+    .result-hero,
+    .result-breakdown {
+      position: relative;
+      z-index: 2;
+      min-height: 0;
+      border: 1px solid rgba(145, 210, 255, 0.13);
+      border-radius: 22px;
+      background: rgba(7, 20, 33, 0.53);
+    }
+
+    .result-hero {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .result-hero-kicker {
+      margin: 0;
+      color: var(--primary);
+      font-size: 0.64rem;
+      font-weight: 850;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .result-main-value {
+      margin-top: 19px;
+      padding: 20px 12px;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 28%, transparent);
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at center,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 13%, transparent),
+          rgba(5, 17, 29, 0.28) 68%);
+      box-shadow: 0 0 34px color-mix(in srgb, var(--quantum-color, var(--primary)) 10%, transparent);
+    }
+
+    .result-main-value span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.67rem;
+    }
+
+    .result-main-value strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--quantum-color, var(--primary));
+      font-size: 3.5rem;
+      line-height: 1;
+      letter-spacing: -0.07em;
+      text-shadow: 0 0 24px color-mix(in srgb, var(--quantum-color, var(--primary)) 30%, transparent);
+    }
+
+    .zeff-card {
+      margin-top: 13px;
+      padding: 15px;
+      text-align: left;
+      border: 1px solid rgba(145, 210, 255, 0.12);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .zeff-card span {
+      color: var(--muted);
+      font-size: 0.64rem;
+    }
+
+    .zeff-card strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.34rem;
+      letter-spacing: -0.04em;
+    }
+
+    .result-formula {
+      margin-top: 13px;
+      padding: 13px;
+      color: rgba(218, 238, 249, 0.78);
+      font-family: "Times New Roman", serif;
+      font-size: 0.94rem;
+      line-height: 1.55;
+      border: 1px solid rgba(145, 210, 255, 0.1);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.018);
+    }
+
+    .result-context {
+      margin-top: auto;
+      padding-top: 17px;
+      color: var(--muted);
+      font-size: 0.64rem;
+      line-height: 1.5;
+    }
+
+    .result-breakdown {
+      padding: 20px;
+      overflow: auto;
+    }
+
+    .result-group-list {
+      margin-top: 15px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .result-group-row {
+      display: grid;
+      grid-template-columns: minmax(145px, 0.9fr) 90px 110px 110px;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border: 1px solid rgba(145, 210, 255, 0.11);
+      border-radius: 13px;
+      background:
+        linear-gradient(145deg, rgba(17, 39, 63, 0.57), rgba(7, 21, 34, 0.57));
+    }
+
+    .result-group-row.is-target {
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 42%, transparent);
+    }
+
+    .result-group-name strong {
+      display: block;
+      font-size: 0.75rem;
+    }
+
+    .result-group-name span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 0.57rem;
+    }
+
+    .result-data-cell {
+      text-align: right;
+    }
+
+    .result-data-cell small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.54rem;
+    }
+
+    .result-data-cell strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 0.72rem;
+    }
+
+    .result-total-row {
+      margin-top: 13px;
+      padding: 13px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 28%, transparent);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--quantum-color, var(--primary)) 6%, rgba(7, 20, 33, 0.73));
+    }
+
+    .result-total-row span {
+      color: var(--muted);
+      font-size: 0.67rem;
+    }
+
+    .result-total-row strong {
+      font-size: 1rem;
+    }
+
+    .result-actions {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .result-secondary-button,
+    .result-primary-button {
+      min-height: 43px;
+      padding: 10px 13px;
+      font-size: 0.73rem;
+      font-weight: 820;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .result-secondary-button {
+      color: var(--muted);
+      border: 1px solid rgba(145, 210, 255, 0.14);
+      background: transparent;
+    }
+
+    .result-primary-button {
+      color: #06101c;
+      border: 0;
+      background: linear-gradient(135deg, #85dcff, #35b9ff);
+    }
+
+
+    .quantum-comparison-card {
+      margin-top: 13px;
+      padding: 15px 16px;
+      border: 1px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+      border-radius: 16px;
+      background:
+        linear-gradient(
+          145deg,
+          color-mix(in srgb, var(--quantum-color, var(--primary)) 7%, rgba(7, 20, 33, 0.78)),
+          rgba(5, 17, 29, 0.72)
+        );
+      box-shadow: 0 0 24px color-mix(in srgb, var(--quantum-color, var(--primary)) 8%, transparent);
+    }
+
+    .quantum-comparison-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .quantum-comparison-header p {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 0.61rem;
+      font-weight: 850;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .quantum-comparison-header h4 {
+      margin: 0;
+      font-size: 0.9rem;
+      letter-spacing: -0.025em;
+    }
+
+    .scf-source-badge {
+      padding: 6px 8px;
+      color: rgba(220, 240, 251, 0.74);
+      font-size: 0.56rem;
+      font-weight: 780;
+      border: 1px solid rgba(145, 210, 255, 0.13);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.025);
+      white-space: nowrap;
+    }
+
+    .quantum-comparison-grid {
+      margin-top: 13px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .comparison-metric {
+      min-height: 72px;
+      padding: 10px 9px;
+      text-align: center;
+      border: 1px solid rgba(145, 210, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.022);
+    }
+
+    .comparison-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.55rem;
+      line-height: 1.3;
+    }
+
+    .comparison-metric strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 0.86rem;
+      line-height: 1.15;
+    }
+
+    .comparison-metric.is-scf strong {
+      color: var(--quantum-color, var(--primary));
+      text-shadow: 0 0 14px color-mix(in srgb, var(--quantum-color, var(--primary)) 24%, transparent);
+    }
+
+    .quantum-comparison-unavailable {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 13px;
+      color: rgba(211, 232, 244, 0.73);
+      font-size: 0.65rem;
+      line-height: 1.5;
+      border: 1px solid rgba(145, 210, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .quantum-comparison-unavailable.is-visible {
+      display: block;
+    }
+
+    .comparison-explanation-button {
+      width: 100%;
+      min-height: 34px;
+      margin-top: 10px;
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 0.62rem;
+      font-weight: 760;
+      border: 1px solid rgba(145, 210, 255, 0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      background: transparent;
+      transition:
+        color 0.18s ease,
+        border-color 0.18s ease,
+        background 0.18s ease;
+    }
+
+    .comparison-explanation-button:hover {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--quantum-color, var(--primary)) 34%, transparent);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .comparison-explanation {
+      display: none;
+      margin: 9px 0 0;
+      padding: 11px 12px;
+      color: rgba(207, 230, 243, 0.7);
+      font-size: 0.62rem;
+      line-height: 1.55;
+      border-left: 2px solid color-mix(in srgb, var(--quantum-color, var(--primary)) 48%, transparent);
+      background: rgba(255, 255, 255, 0.018);
+    }
+
+    .comparison-explanation.is-visible {
+      display: block;
+      animation: comparisonInfoIn 0.24s ease both;
+    }
+
+    @keyframes comparisonInfoIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .comparison-citation {
+      display: block;
+      margin-top: 8px;
+      color: rgba(176, 204, 220, 0.56);
+      font-size: 0.56rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 840px) {
+      .screen {
+        padding-inline: 12px;
+      }
+
+      .periodic-header {
+        grid-template-columns: auto 1fr;
+      }
+
+      .selection-card {
+        grid-column: 1 / -1;
+        min-width: 0;
+        text-align: center;
+      }
+
+      .table-panel {
+        padding: 14px;
+        border-radius: 19px;
+      }
+
+      .hero {
+        padding: 46px 24px 40px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .screen {
+        padding-bottom: 70px;
+      }
+
+      .hero {
+        padding: 42px 22px 38px;
+        border-radius: 22px;
+      }
+
+      .description {
+        margin-bottom: 27px;
+        font-size: 0.92rem;
+      }
+
+      .back-button {
+        padding-inline: 12px;
+      }
+
+      .periodic-title {
+        text-align: left;
+      }
+
+      .periodic-title h2 {
+        font-size: 1.45rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+
+  <main>
+    <section class="screen" id="introScreen" aria-hidden="false">
+      <div class="hero">
+        <div class="atom-symbol" aria-hidden="true">
+          <div class="nucleus"></div>
+        </div>
+
+        <p class="eyebrow">Effective Nuclear Charge Tool</p>
+
+        <h1>
+          슬레이터 계산기
+          <span>v.1.0</span>
+        </h1>
+
+        <p class="description">
+          슬레이터 규칙을 바탕으로 차폐 상수와 유효 핵전하를 계산하는
+          웹 기반 화학 계산 도구입니다.
+        </p>
+
+        <div class="actions">
+          <button class="start-button" id="startButton" type="button">
+            시작하기
+          </button>
+
+          <div class="intro-utility-actions">
+            <button
+              class="update-note-button"
+              id="updateNoteButton"
+              type="button"
+            >
+              업데이트 노트
+              <span class="update-note-badge">NEW</span>
+            </button>
+
+            <button class="feedback-button" id="feedbackButton" type="button">
+              개선사항 제안
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="periodicScreen" aria-hidden="true">
+      <div class="periodic-shell">
+        <header class="periodic-header">
+          <button class="back-button" id="backButton" type="button">
+            ← 처음으로
+          </button>
+
+          <div class="periodic-title">
+            <p>Select an element</p>
+            <h2>계산할 원소를 선택하세요</h2>
+          </div>
+
+          <div class="selection-card" aria-live="polite">
+            <small>현재 선택</small>
+            <strong id="selectedElementText">선택된 원소 없음</strong>
+          </div>
+        </header>
+
+        <div class="table-panel">
+          <div class="periodic-table" id="periodicTable" aria-label="원소 주기율표"></div>
+
+          <div class="legend" id="legend"></div>
+
+          <p class="periodic-note">
+            원소를 클릭하면 다음 계산 단계에 사용할 원소로 선택됩니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="quantumScreen" aria-hidden="true">
+      <div class="quantum-shell">
+        <header class="quantum-header">
+          <button class="back-button" id="backToPeriodicButton" type="button">
+            ← 원소 다시 선택
+          </button>
+
+          <div class="quantum-title">
+            <p>Step 2 · Principal Quantum Number</p>
+            <h2>주양자수를 선택하세요</h2>
+            <span>유효 핵전하를 계산할 전자의 전자껍질을 선택합니다.</span>
+          </div>
+
+          <div class="quantum-element-card" id="quantumElementCard">
+            <div class="quantum-element-symbol" id="quantumHeaderSymbol">Fe</div>
+            <div class="quantum-element-copy">
+              <small>선택한 원소</small>
+              <strong id="quantumHeaderName">26. 철</strong>
+            </div>
+          </div>
+        </header>
+
+        <div class="atom-workspace" id="atomWorkspace">
+          <div class="atom-legend-card">
+            <p>Electron shell</p>
+            <strong id="shellGuideTitle">전자껍질을 선택해 보세요</strong>
+            <span id="shellGuideText">
+              오른쪽의 n 값을 선택하면 해당 껍질과 전자가 강조됩니다.
+            </span>
+          </div>
+
+          <div class="atom-stage">
+            <canvas id="atomCanvas"></canvas>
+
+            <div class="atom-core" id="atomCore">
+              <div class="core-copy">
+                <span class="core-number" id="coreAtomicNumber">26</span>
+                <span class="core-symbol" id="coreElementSymbol">Fe</span>
+                <span class="core-name" id="coreElementName">철</span>
+              </div>
+            </div>
+
+            <div class="quantum-nodes" id="quantumNodes"></div>
+          </div>
+
+          <p class="model-disclaimer">
+            원자모형은 전자껍질 구분을 돕기 위한 개념적 시각화입니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="orbitalScreen" aria-hidden="true">
+      <div class="selection-shell">
+        <header class="selection-header">
+          <button class="back-button" id="backToQuantumButton" type="button">
+            ← 주양자수 다시 선택
+          </button>
+
+          <div class="selection-title">
+            <p>Step 3 · Orbital Type</p>
+            <h2>오비탈을 선택하세요</h2>
+            <span>선택한 전자껍질에서 계산할 전자의 오비탈 종류를 고릅니다.</span>
+          </div>
+
+          <div class="selection-summary">
+            <small>현재 선택</small>
+            <strong id="orbitalHeaderSummary">Fe · n = 3</strong>
+          </div>
+        </header>
+
+        <div class="selection-workspace">
+          <div class="orbital-intro">
+            <strong id="orbitalIntroTitle">n = 3 전자껍질의 점유 오비탈</strong>
+            <span id="orbitalIntroText">실제로 전자가 들어 있는 오비탈만 선택할 수 있습니다.</span>
+          </div>
+
+          <div class="orbital-grid" id="orbitalGrid"></div>
+
+          <p class="orbital-note">
+            오비탈 그림은 공간 분포의 특징을 단순화한 개념적 표현입니다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="electronScreen" aria-hidden="true">
+      <div class="selection-shell">
+        <header class="selection-header">
+          <button class="back-button" id="backToOrbitalButton" type="button">
+            ← 오비탈 다시 선택
+          </button>
+
+          <div class="selection-title">
+            <p>Step 4 · Target Electron</p>
+            <h2>몇 번째 전자인지 선택하세요</h2>
+            <span>선택한 오비탈에 들어 있는 전자 중 계산 대상을 지정합니다.</span>
+          </div>
+
+          <div class="selection-summary">
+            <small>현재 선택</small>
+            <strong id="electronHeaderSummary">Fe · 3d⁶</strong>
+          </div>
+        </header>
+
+        <div class="selection-workspace electron-workspace">
+          <section class="orbital-diagram-panel">
+            <p class="panel-kicker">Orbital diagram</p>
+            <h3 class="diagram-title" id="diagramTitle">3d⁶ 오비탈 상자</h3>
+            <p class="diagram-copy">
+              훈트 규칙에 따라 전자가 채워진 순서를 표시합니다.
+            </p>
+
+            <div class="orbital-boxes" id="orbitalBoxes"></div>
+
+            <p class="diagram-caption" id="diagramCaption">
+              전자를 선택하면 해당 화살표가 강조됩니다.
+            </p>
+          </section>
+
+          <section class="electron-picker-panel">
+            <p class="panel-kicker">Target electron</p>
+            <h3 class="picker-title">계산할 전자를 선택하세요</h3>
+            <p class="picker-copy" id="electronPickerCopy">
+              이 오비탈에는 6개의 전자가 들어 있습니다.
+            </p>
+
+            <div class="electron-grid" id="electronGrid"></div>
+
+            <p class="equivalence-note">
+              같은 Slater 전자군에 속한 전자들은 동일한 차폐 규칙과 유효 핵전하를 적용받습니다.
+            </p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="calculationModeScreen" aria-hidden="true">
+      <div class="selection-shell">
+        <header class="selection-header">
+          <button class="back-button" id="backToElectronButton" type="button">
+            ← 오비탈 다시 선택
+          </button>
+
+          <div class="selection-title">
+            <p>Step 4 · Calculation Mode</p>
+            <h2>계산 방식을 선택하세요</h2>
+            <span>결과를 바로 계산하거나, 슬레이터 규칙을 직접 적용하며 학습할 수 있습니다.</span>
+          </div>
+
+          <div class="selection-summary">
+            <small>계산 대상</small>
+            <strong id="modeHeaderSummary">Fe · 3d 전자</strong>
+          </div>
+        </header>
+
+        <div class="selection-workspace mode-workspace">
+          <section class="target-overview">
+            <div class="target-element-tile" id="modeElementSymbol">Fe</div>
+
+            <div class="target-overview-copy">
+              <small>Selected target</small>
+              <strong id="modeTargetTitle">철 · 3d 전자군</strong>
+              <span id="modeConfigurationText">
+                전자배치: 1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d⁶
+              </span>
+            </div>
+
+            <span class="neutral-badge">중성 원자 · v.1.0</span>
+          </section>
+
+          <section class="mode-selector-section">
+            <div class="mode-selector-heading">
+              <strong>계산 모드</strong>
+              <span>선택한 방식에 따라 다음 단계의 진행 구조가 달라집니다.</span>
+            </div>
+
+            <div class="mode-options">
+              <button
+                class="mode-option is-selected"
+                id="automaticModeButton"
+                data-mode="auto"
+                type="button"
+              >
+                <span class="mode-radio" aria-hidden="true"></span>
+                <span class="mode-option-copy">
+                  <strong>자동 계산</strong>
+                  <span>차폐 규칙을 자동으로 적용합니다.</span>
+                </span>
+              </button>
+
+              <button
+                class="mode-option"
+                id="learningModeButton"
+                data-mode="learning"
+                type="button"
+              >
+                <span class="mode-radio" aria-hidden="true"></span>
+                <span class="mode-option-copy">
+                  <strong>학습 모드</strong>
+                  <span>전자군과 차폐 계수를 직접 선택합니다.</span>
+                </span>
+              </button>
+            </div>
+
+            <div class="mode-description" id="modeDescription" aria-live="polite">
+              <div class="mode-description-icon" id="modeDescriptionIcon">A</div>
+
+              <div class="mode-description-copy">
+                <strong id="modeDescriptionTitle">자동 계산</strong>
+                <p id="modeDescriptionText">
+                  슬레이터 규칙을 자동으로 적용하여 차폐 상수와 유효 핵전하를 계산합니다.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="slater-preview">
+            <header class="slater-preview-header">
+              <div>
+                <p>Slater electron groups</p>
+                <h3>슬레이터 전자군 미리보기</h3>
+              </div>
+
+              <span>강조된 카드가 선택한 전자의 전자군입니다.</span>
+            </header>
+
+            <div class="slater-groups" id="slaterGroups"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="learningScreen" aria-hidden="true">
+      <div class="selection-shell">
+        <header class="selection-header">
+          <button class="back-button" id="backToModeFromLearningButton" type="button">
+            ← 계산 방식 다시 선택
+          </button>
+
+          <div class="selection-title">
+            <p>Step 5 · Learning Mode</p>
+            <h2>차폐 계수를 직접 선택하세요</h2>
+            <span>각 전자군이 대상 전자를 얼마나 차폐하는지 슬레이터 규칙으로 판단합니다.</span>
+          </div>
+
+          <div class="selection-summary">
+            <small>학습 진행</small>
+            <strong id="learningHeaderSummary">Fe · 3d 전자</strong>
+          </div>
+        </header>
+
+        <div class="selection-workspace calculation-workspace">
+          <section class="calculation-target-strip">
+            <div class="calculation-target-symbol" id="learningElementSymbol">Fe</div>
+
+            <div class="calculation-target-copy">
+              <small>Target electron</small>
+              <strong id="learningTargetTitle">철 · 3d 전자군</strong>
+              <span id="learningTargetConfig">전자배치: 1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d⁶</span>
+            </div>
+
+            <span class="mode-badge">학습 모드</span>
+          </section>
+
+          <div class="learning-layout">
+            <section class="coefficient-panel">
+              <header class="inner-section-header">
+                <p>Shielding coefficients</p>
+                <h3>전자군별 차폐 계수</h3>
+                <span>대상 전자 자신은 같은 전자군의 전자 수에서 제외됩니다.</span>
+              </header>
+
+              <div class="learning-group-list" id="learningGroupList"></div>
+            </section>
+
+            <aside class="learning-guide-panel">
+              <header class="inner-section-header">
+                <p>Learning progress</p>
+                <h3>학습 진행</h3>
+                <span id="learningRuleSummary">
+                  먼저 스스로 계수를 선택한 뒤 답안을 확인하세요.
+                </span>
+              </header>
+
+              <button
+                class="learning-hint-button"
+                id="showHintButton"
+                type="button"
+              >
+                힌트 보기
+              </button>
+
+              <div class="learning-rule-card" id="learningRuleCard">
+                <strong id="learningRuleTitle">d 또는 f 전자 규칙</strong>
+                <p id="learningRuleText">
+                  같은 전자군의 다른 전자는 0.35, 왼쪽 전자군은 1.00,
+                  오른쪽 전자군은 0.00으로 계산합니다.
+                </p>
+              </div>
+
+              <div class="learning-progress">
+                <div class="learning-progress-row">
+                  <span>선택 진행률</span>
+                  <strong id="learningProgressText">0 / 0</strong>
+                </div>
+                <div class="learning-progress-track">
+                  <div class="learning-progress-bar" id="learningProgressBar"></div>
+                </div>
+              </div>
+
+              <button class="learning-check-button" id="checkLearningButton" type="button">
+                답안 확인하기
+              </button>
+
+              <div class="learning-status" id="learningStatus" aria-live="polite">
+                모든 전자군의 계수를 선택한 뒤 답안을 확인하세요.
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="resultScreen" aria-hidden="true">
+      <div class="selection-shell">
+        <header class="selection-header">
+          <button class="back-button" id="backFromResultButton" type="button">
+            ← 계산 방식으로
+          </button>
+
+          <div class="selection-title">
+            <p>Final · Effective Nuclear Charge</p>
+            <h2>계산 결과</h2>
+            <span>전자군별 차폐 기여도를 합산하여 유효 핵전하를 구했습니다.</span>
+          </div>
+
+          <div class="selection-summary">
+            <small>계산 대상</small>
+            <strong id="resultHeaderSummary">Fe · 3d 전자</strong>
+          </div>
+        </header>
+
+        <div class="selection-workspace result-workspace">
+          <section class="result-hero">
+            <p class="result-hero-kicker">Shielding constant</p>
+
+            <div class="result-main-value">
+              <span>차폐 상수 S</span>
+              <strong id="resultShieldingValue">19.75</strong>
+            </div>
+
+            <div class="zeff-card">
+              <span>유효 핵전하 Z<sub>eff</sub></span>
+              <strong id="resultZeffValue">6.25</strong>
+            </div>
+
+            <div class="result-formula" id="resultFormula">
+              Z<sub>eff</sub> = Z − S<br>
+              = 26 − 19.75 = 6.25
+            </div>
+
+            <p class="result-context" id="resultContext">
+              중성 원자와 슬레이터 규칙을 기준으로 계산한 근사값입니다.
+            </p>
+          </section>
+
+          <section class="result-breakdown">
+            <header class="inner-section-header">
+              <p>Calculation breakdown</p>
+              <h3>전자군별 차폐 기여도</h3>
+              <span id="resultModeDescription">자동 계산으로 슬레이터 규칙을 적용했습니다.</span>
+            </header>
+
+            <div class="result-group-list" id="resultGroupList"></div>
+
+            <div class="result-total-row">
+              <span>총 차폐 상수 S</span>
+              <strong id="resultTotalValue">19.75</strong>
+            </div>
+
+            <section class="quantum-comparison-card" id="quantumComparisonCard">
+              <header class="quantum-comparison-header">
+                <div>
+                  <p>Quantum-chemical comparison</p>
+                  <h4>SCF 문헌값과 비교</h4>
+                </div>
+                <span class="scf-source-badge">C–R SCF · BETA</span>
+              </header>
+
+              <div class="quantum-comparison-grid" id="quantumComparisonGrid">
+                <div class="comparison-metric">
+                  <span>Slater 규칙<br>Z<sub>eff</sub></span>
+                  <strong id="comparisonSlaterValue">6.25</strong>
+                </div>
+
+                <div class="comparison-metric is-scf">
+                  <span>SCF 문헌값<br>Z<sub>eff</sub></span>
+                  <strong id="comparisonScfValue">11.18</strong>
+                </div>
+
+                <div class="comparison-metric">
+                  <span>절대 차이</span>
+                  <strong id="comparisonAbsoluteValue">4.93</strong>
+                </div>
+
+                <div class="comparison-metric">
+                  <span>상대 차이</span>
+                  <strong id="comparisonRelativeValue">44.1%</strong>
+                </div>
+              </div>
+
+              <div
+                class="quantum-comparison-unavailable"
+                id="quantumComparisonUnavailable"
+              >
+                선택한 원소 또는 오비탈의 SCF 비교값이 현재 내장 데이터에 없습니다.
+                슬레이터 규칙 결과만 표시합니다.
+              </div>
+
+              <button
+                class="comparison-explanation-button"
+                id="comparisonExplanationButton"
+                type="button"
+              >
+                비교값 해석 보기 ▾
+              </button>
+
+              <p class="comparison-explanation" id="comparisonExplanation">
+                슬레이터 규칙은 전자를 몇 개의 전자군으로 묶고 고정된 차폐 계수를
+                적용하는 근사법입니다. Clementi–Raimondi 값은 SCF 원자 오비탈에서
+                얻은 차폐 상수와 오비탈 지수를 바탕으로 하므로 두 값은 서로 다른
+                근사 정의에 해당합니다. 따라서 이 수치는 정답과 오차가 아니라
+                두 계산 모형 사이의 차이로 해석해야 합니다.
+                <span class="comparison-citation">
+                  E. Clementi &amp; D. L. Raimondi, J. Chem. Phys. 38,
+                  2686–2689 (1963); 후속 데이터: J. Chem. Phys. 47,
+                  1300–1307 (1967). 현재 웹앱 내장 범위: H–Xe.
+                  BETA 표시는 내장 문헌값의 전체 대조 검수가 진행 중임을 뜻합니다.
+                </span>
+              </p>
+            </section>
+
+            <div class="result-actions">
+              <button class="result-secondary-button" id="changeModeButton" type="button">
+                계산 방식 변경
+              </button>
+              <button class="result-primary-button" id="restartButton" type="button">
+                다른 원소 계산하기
+              </button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <button
+    class="floating-feedback"
+    id="floatingFeedbackButton"
+    type="button"
+  >
+    ◇ 개선사항 제안
+  </button>
+
+  <aside class="next-panel" id="nextPanel" aria-live="polite">
+    <p class="next-panel-label">Selected element</p>
+
+    <div class="next-panel-element">
+      <div class="next-panel-symbol" id="nextPanelSymbol">Fe</div>
+
+      <div class="next-panel-info">
+        <strong id="nextPanelName">철</strong>
+        <span id="nextPanelMeta">원자번호 26 · 전이 금속</span>
+      </div>
+    </div>
+
+    <button class="next-button" id="nextButton" type="button">
+      다음 단계 →
+    </button>
+  </aside>
+
+
+  <aside class="shell-next-panel" id="shellNextPanel" aria-live="polite">
+    <p class="next-panel-label">Selected shell</p>
+
+    <span class="shell-choice-title" id="shellChoiceTitle">n = 3</span>
+    <span class="shell-choice-config" id="shellChoiceConfig">3s² 3p⁶ 3d⁶</span>
+
+    <button class="next-button" id="orbitalNextButton" type="button">
+      오비탈 선택하기 →
+    </button>
+  </aside>
+
+  <aside class="orbital-next-panel" id="orbitalChoicePanel" aria-live="polite">
+    <p class="next-panel-label">Selected orbital</p>
+    <span class="floating-choice-title" id="orbitalChoiceTitle">3d 오비탈</span>
+    <span class="floating-choice-copy" id="orbitalChoiceCopy">6개의 전자가 점유</span>
+
+    <button class="next-button" id="electronNextButton" type="button">
+      계산 단계로 이동 →
+    </button>
+  </aside>
+
+  <aside class="electron-next-panel" id="electronChoicePanel" aria-live="polite">
+    <p class="next-panel-label">Selected electron</p>
+    <span class="floating-choice-title" id="electronChoiceTitle">3d의 1번째 전자</span>
+    <span class="floating-choice-copy" id="electronChoiceCopy">Fe · 원자번호 26</span>
+
+    <button class="next-button" id="calculationNextButton" type="button">
+      계산 단계로 이동 →
+    </button>
+  </aside>
+
+  <aside class="mode-next-panel" id="modeNextPanel" aria-live="polite">
+    <p class="next-panel-label">Calculation mode</p>
+    <span class="floating-choice-title" id="modeChoiceTitle">자동 계산</span>
+    <span class="floating-choice-copy" id="modeChoiceCopy">
+      슬레이터 규칙을 자동 적용합니다.
+    </span>
+
+    <button class="next-button" id="modeNextButton" type="button">
+      차폐 상수 계산하기 →
+    </button>
+  </aside>
+
+  <aside class="learning-result-panel" id="learningResultPanel" aria-live="polite">
+    <p class="next-panel-label">Learning complete</p>
+    <span class="floating-choice-title">전자군 분류 완료</span>
+    <span class="floating-choice-copy">
+      선택한 계수로 최종 결과를 확인합니다.
+    </span>
+
+    <button class="next-button" id="learningResultButton" type="button">
+      계산 결과 확인하기 →
+    </button>
+  </aside>
+
+  <section
+    class="update-modal"
+    id="updateModal"
+    aria-hidden="true"
+    aria-labelledby="updateModalTitle"
+    role="dialog"
+    aria-modal="true"
+  >
+    <button
+      class="update-modal-backdrop"
+      id="updateModalBackdrop"
+      type="button"
+      aria-label="업데이트 노트 닫기"
+    ></button>
+
+    <div class="update-modal-dialog">
+      <header class="update-modal-header">
+        <div>
+          <p>Version history</p>
+          <h2 id="updateModalTitle">업데이트 노트</h2>
+          <span>슬레이터 계산기의 기능 추가와 개선 기록입니다.</span>
+        </div>
+
+        <button
+          class="update-modal-close"
+          id="updateModalCloseButton"
+          type="button"
+          aria-label="업데이트 노트 닫기"
+        >
+          ×
+        </button>
+      </header>
+
+      <div class="update-log">
+        <article class="update-entry">
+          <div class="update-entry-heading">
+            <strong>v.1.0 · Initial Release</strong>
+            <time datetime="2026-07-23">2026.07.23</time>
+          </div>
+
+          <p class="update-entry-subtitle">
+            슬레이터 규칙 계산과 학습 기능을 갖춘 첫 공개 버전
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <aside
+    class="compact-screen-notice"
+    id="compactScreenNotice"
+    aria-label="PC 환경 권장 안내"
+  >
+    <div class="compact-screen-card">
+      <div class="compact-screen-icon" aria-hidden="true">⚛</div>
+      <p>Desktop recommended</p>
+      <h2>PC 환경에 최적화되어 있습니다</h2>
+      <span>
+        주기율표와 계산 단계를 가장 정확하게 사용하려면
+        넓은 화면의 PC 브라우저에서 접속해 주세요.
+      </span>
+
+      <button
+        class="compact-screen-continue"
+        id="compactScreenContinueButton"
+        type="button"
+      >
+        그래도 계속하기
+      </button>
+
+      <span class="compact-screen-footnote">
+        이 안내는 현재 탭에서 한 번만 표시됩니다.
+      </span>
+    </div>
+  </aside>
+
+  <footer class="copyright">© 2026 JihuJeong. All rights reserved.</footer>
+
+  <script>
+    const elements = [
+      [1,"H","수소",1,1,"nonmetal"], [2,"He","헬륨",1,18,"noble"],
+      [3,"Li","리튬",2,1,"alkali"], [4,"Be","베릴륨",2,2,"alkaline"],
+      [5,"B","붕소",2,13,"metalloid"], [6,"C","탄소",2,14,"nonmetal"],
+      [7,"N","질소",2,15,"nonmetal"], [8,"O","산소",2,16,"nonmetal"],
+      [9,"F","플루오린",2,17,"halogen"], [10,"Ne","네온",2,18,"noble"],
+      [11,"Na","나트륨",3,1,"alkali"], [12,"Mg","마그네슘",3,2,"alkaline"],
+      [13,"Al","알루미늄",3,13,"post"], [14,"Si","규소",3,14,"metalloid"],
+      [15,"P","인",3,15,"nonmetal"], [16,"S","황",3,16,"nonmetal"],
+      [17,"Cl","염소",3,17,"halogen"], [18,"Ar","아르곤",3,18,"noble"],
+      [19,"K","칼륨",4,1,"alkali"], [20,"Ca","칼슘",4,2,"alkaline"],
+      [21,"Sc","스칸듐",4,3,"transition"], [22,"Ti","타이타늄",4,4,"transition"],
+      [23,"V","바나듐",4,5,"transition"], [24,"Cr","크로뮴",4,6,"transition"],
+      [25,"Mn","망가니즈",4,7,"transition"], [26,"Fe","철",4,8,"transition"],
+      [27,"Co","코발트",4,9,"transition"], [28,"Ni","니켈",4,10,"transition"],
+      [29,"Cu","구리",4,11,"transition"], [30,"Zn","아연",4,12,"transition"],
+      [31,"Ga","갈륨",4,13,"post"], [32,"Ge","저마늄",4,14,"metalloid"],
+      [33,"As","비소",4,15,"metalloid"], [34,"Se","셀레늄",4,16,"nonmetal"],
+      [35,"Br","브로민",4,17,"halogen"], [36,"Kr","크립톤",4,18,"noble"],
+      [37,"Rb","루비듐",5,1,"alkali"], [38,"Sr","스트론튬",5,2,"alkaline"],
+      [39,"Y","이트륨",5,3,"transition"], [40,"Zr","지르코늄",5,4,"transition"],
+      [41,"Nb","나이오븀",5,5,"transition"], [42,"Mo","몰리브데넘",5,6,"transition"],
+      [43,"Tc","테크네튬",5,7,"transition"], [44,"Ru","루테늄",5,8,"transition"],
+      [45,"Rh","로듐",5,9,"transition"], [46,"Pd","팔라듐",5,10,"transition"],
+      [47,"Ag","은",5,11,"transition"], [48,"Cd","카드뮴",5,12,"transition"],
+      [49,"In","인듐",5,13,"post"], [50,"Sn","주석",5,14,"post"],
+      [51,"Sb","안티모니",5,15,"metalloid"], [52,"Te","텔루륨",5,16,"metalloid"],
+      [53,"I","아이오딘",5,17,"halogen"], [54,"Xe","제논",5,18,"noble"],
+      [55,"Cs","세슘",6,1,"alkali"], [56,"Ba","바륨",6,2,"alkaline"],
+      [72,"Hf","하프늄",6,4,"transition"], [73,"Ta","탄탈럼",6,5,"transition"],
+      [74,"W","텅스텐",6,6,"transition"], [75,"Re","레늄",6,7,"transition"],
+      [76,"Os","오스뮴",6,8,"transition"], [77,"Ir","이리듐",6,9,"transition"],
+      [78,"Pt","백금",6,10,"transition"], [79,"Au","금",6,11,"transition"],
+      [80,"Hg","수은",6,12,"transition"], [81,"Tl","탈륨",6,13,"post"],
+      [82,"Pb","납",6,14,"post"], [83,"Bi","비스무트",6,15,"post"],
+      [84,"Po","폴로늄",6,16,"post"], [85,"At","아스타틴",6,17,"halogen"],
+      [86,"Rn","라돈",6,18,"noble"],
+      [87,"Fr","프랑슘",7,1,"alkali"], [88,"Ra","라듐",7,2,"alkaline"],
+      [104,"Rf","러더포듐",7,4,"transition"], [105,"Db","더브늄",7,5,"transition"],
+      [106,"Sg","시보귬",7,6,"transition"], [107,"Bh","보륨",7,7,"transition"],
+      [108,"Hs","하슘",7,8,"transition"], [109,"Mt","마이트너륨",7,9,"transition"],
+      [110,"Ds","다름슈타튬",7,10,"transition"], [111,"Rg","뢴트게늄",7,11,"transition"],
+      [112,"Cn","코페르니슘",7,12,"transition"], [113,"Nh","니호늄",7,13,"post"],
+      [114,"Fl","플레로븀",7,14,"post"], [115,"Mc","모스코븀",7,15,"post"],
+      [116,"Lv","리버모륨",7,16,"post"], [117,"Ts","테네신",7,17,"halogen"],
+      [118,"Og","오가네손",7,18,"noble"],
+
+      [57,"La","란타넘",9,4,"lanthanide"], [58,"Ce","세륨",9,5,"lanthanide"],
+      [59,"Pr","프라세오디뮴",9,6,"lanthanide"], [60,"Nd","네오디뮴",9,7,"lanthanide"],
+      [61,"Pm","프로메튬",9,8,"lanthanide"], [62,"Sm","사마륨",9,9,"lanthanide"],
+      [63,"Eu","유로퓸",9,10,"lanthanide"], [64,"Gd","가돌리늄",9,11,"lanthanide"],
+      [65,"Tb","터븀",9,12,"lanthanide"], [66,"Dy","디스프로슘",9,13,"lanthanide"],
+      [67,"Ho","홀뮴",9,14,"lanthanide"], [68,"Er","어븀",9,15,"lanthanide"],
+      [69,"Tm","툴륨",9,16,"lanthanide"], [70,"Yb","이터븀",9,17,"lanthanide"],
+      [71,"Lu","루테튬",9,18,"lanthanide"],
+
+      [89,"Ac","악티늄",10,4,"actinide"], [90,"Th","토륨",10,5,"actinide"],
+      [91,"Pa","프로트악티늄",10,6,"actinide"], [92,"U","우라늄",10,7,"actinide"],
+      [93,"Np","넵투늄",10,8,"actinide"], [94,"Pu","플루토늄",10,9,"actinide"],
+      [95,"Am","아메리슘",10,10,"actinide"], [96,"Cm","퀴륨",10,11,"actinide"],
+      [97,"Bk","버클륨",10,12,"actinide"], [98,"Cf","캘리포늄",10,13,"actinide"],
+      [99,"Es","아인슈타이늄",10,14,"actinide"], [100,"Fm","페르뮴",10,15,"actinide"],
+      [101,"Md","멘델레븀",10,16,"actinide"], [102,"No","노벨륨",10,17,"actinide"],
+      [103,"Lr","로렌슘",10,18,"actinide"]
+    ];
+
+    const categoryData = {
+      alkali: ["알칼리 금속", "var(--alkali)"],
+      alkaline: ["알칼리 토금속", "var(--alkaline)"],
+      transition: ["전이 금속", "var(--transition)"],
+      post: ["전이후 금속", "var(--post)"],
+      metalloid: ["준금속", "var(--metalloid)"],
+      nonmetal: ["비금속", "var(--nonmetal)"],
+      halogen: ["할로젠", "var(--halogen)"],
+      noble: ["비활성 기체", "var(--noble)"],
+      lanthanide: ["란타넘족", "var(--lanthanide)"],
+      actinide: ["악티늄족", "var(--actinide)"]
+    };
+
+
+    const categoryHexData = {
+      alkali: "#ff9777",
+      alkaline: "#ffc66f",
+      transition: "#68c7ff",
+      post: "#7ce1d2",
+      metalloid: "#9bd982",
+      nonmetal: "#a9b6ff",
+      halogen: "#d89cff",
+      noble: "#ff94c6",
+      lanthanide: "#8bd8ff",
+      actinide: "#62e4ba"
+    };
+
+    const introScreen = document.getElementById("introScreen");
+    const periodicScreen = document.getElementById("periodicScreen");
+    const startButton = document.getElementById("startButton");
+    const backButton = document.getElementById("backButton");
+    const feedbackButton = document.getElementById("feedbackButton");
+    const compactScreenNotice =
+      document.getElementById("compactScreenNotice");
+    const compactScreenContinueButton =
+      document.getElementById("compactScreenContinueButton");
+
+    const updateNoteButton =
+      document.getElementById("updateNoteButton");
+    const updateModal =
+      document.getElementById("updateModal");
+    const updateModalBackdrop =
+      document.getElementById("updateModalBackdrop");
+    const updateModalCloseButton =
+      document.getElementById("updateModalCloseButton");
+
+    const periodicTable = document.getElementById("periodicTable");
+    const selectedElementText = document.getElementById("selectedElementText");
+    const legend = document.getElementById("legend");
+
+
+    const quantumScreen = document.getElementById("quantumScreen");
+    const backToPeriodicButton = document.getElementById("backToPeriodicButton");
+    const quantumElementCard = document.getElementById("quantumElementCard");
+    const quantumHeaderSymbol = document.getElementById("quantumHeaderSymbol");
+    const quantumHeaderName = document.getElementById("quantumHeaderName");
+    const coreAtomicNumber = document.getElementById("coreAtomicNumber");
+    const coreElementSymbol = document.getElementById("coreElementSymbol");
+    const coreElementName = document.getElementById("coreElementName");
+    const shellGuideTitle = document.getElementById("shellGuideTitle");
+    const shellGuideText = document.getElementById("shellGuideText");
+    const quantumNodes = document.getElementById("quantumNodes");
+    const atomCanvas = document.getElementById("atomCanvas");
+    const atomWorkspace = document.getElementById("atomWorkspace");
+    const atomCore = document.getElementById("atomCore");
+    const shellNextPanel = document.getElementById("shellNextPanel");
+    const shellChoiceTitle = document.getElementById("shellChoiceTitle");
+    const shellChoiceConfig = document.getElementById("shellChoiceConfig");
+    const orbitalNextButton = document.getElementById("orbitalNextButton");
+
+
+    const orbitalScreen = document.getElementById("orbitalScreen");
+    const electronScreen = document.getElementById("electronScreen");
+    const backToQuantumButton = document.getElementById("backToQuantumButton");
+    const backToOrbitalButton = document.getElementById("backToOrbitalButton");
+    const orbitalHeaderSummary = document.getElementById("orbitalHeaderSummary");
+    const orbitalIntroTitle = document.getElementById("orbitalIntroTitle");
+    const orbitalIntroText = document.getElementById("orbitalIntroText");
+    const orbitalGrid = document.getElementById("orbitalGrid");
+
+    const electronHeaderSummary = document.getElementById("electronHeaderSummary");
+    const diagramTitle = document.getElementById("diagramTitle");
+    const orbitalBoxes = document.getElementById("orbitalBoxes");
+    const diagramCaption = document.getElementById("diagramCaption");
+    const electronPickerCopy = document.getElementById("electronPickerCopy");
+    const electronGrid = document.getElementById("electronGrid");
+
+    const orbitalChoicePanel = document.getElementById("orbitalChoicePanel");
+    const orbitalChoiceTitle = document.getElementById("orbitalChoiceTitle");
+    const orbitalChoiceCopy = document.getElementById("orbitalChoiceCopy");
+    const electronNextButton = document.getElementById("electronNextButton");
+
+    const electronChoicePanel = document.getElementById("electronChoicePanel");
+    const electronChoiceTitle = document.getElementById("electronChoiceTitle");
+    const electronChoiceCopy = document.getElementById("electronChoiceCopy");
+    const calculationNextButton = document.getElementById("calculationNextButton");
+
+
+    const calculationModeScreen =
+      document.getElementById("calculationModeScreen");
+    const backToElectronButton =
+      document.getElementById("backToElectronButton");
+    const modeHeaderSummary =
+      document.getElementById("modeHeaderSummary");
+    const modeElementSymbol =
+      document.getElementById("modeElementSymbol");
+    const modeTargetTitle =
+      document.getElementById("modeTargetTitle");
+    const modeConfigurationText =
+      document.getElementById("modeConfigurationText");
+    const automaticModeButton =
+      document.getElementById("automaticModeButton");
+    const learningModeButton =
+      document.getElementById("learningModeButton");
+    const modeDescription =
+      document.getElementById("modeDescription");
+    const modeDescriptionIcon =
+      document.getElementById("modeDescriptionIcon");
+    const modeDescriptionTitle =
+      document.getElementById("modeDescriptionTitle");
+    const modeDescriptionText =
+      document.getElementById("modeDescriptionText");
+    const slaterGroups =
+      document.getElementById("slaterGroups");
+    const modeNextPanel =
+      document.getElementById("modeNextPanel");
+    const modeChoiceTitle =
+      document.getElementById("modeChoiceTitle");
+    const modeChoiceCopy =
+      document.getElementById("modeChoiceCopy");
+    const modeNextButton =
+      document.getElementById("modeNextButton");
+
+
+    const learningScreen = document.getElementById("learningScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const backToModeFromLearningButton =
+      document.getElementById("backToModeFromLearningButton");
+    const learningHeaderSummary =
+      document.getElementById("learningHeaderSummary");
+    const learningElementSymbol =
+      document.getElementById("learningElementSymbol");
+    const learningTargetTitle =
+      document.getElementById("learningTargetTitle");
+    const learningTargetConfig =
+      document.getElementById("learningTargetConfig");
+    const learningGroupList =
+      document.getElementById("learningGroupList");
+    const learningRuleSummary =
+      document.getElementById("learningRuleSummary");
+    const learningRuleTitle =
+      document.getElementById("learningRuleTitle");
+    const learningRuleText =
+      document.getElementById("learningRuleText");
+    const showHintButton =
+      document.getElementById("showHintButton");
+    const learningRuleCard =
+      document.getElementById("learningRuleCard");
+    const learningProgressText =
+      document.getElementById("learningProgressText");
+    const learningProgressBar =
+      document.getElementById("learningProgressBar");
+    const checkLearningButton =
+      document.getElementById("checkLearningButton");
+    const learningStatus =
+      document.getElementById("learningStatus");
+    const learningResultPanel =
+      document.getElementById("learningResultPanel");
+    const learningResultButton =
+      document.getElementById("learningResultButton");
+
+    const backFromResultButton =
+      document.getElementById("backFromResultButton");
+    const resultHeaderSummary =
+      document.getElementById("resultHeaderSummary");
+    const resultShieldingValue =
+      document.getElementById("resultShieldingValue");
+    const resultZeffValue =
+      document.getElementById("resultZeffValue");
+    const resultFormula =
+      document.getElementById("resultFormula");
+    const resultContext =
+      document.getElementById("resultContext");
+    const resultModeDescription =
+      document.getElementById("resultModeDescription");
+    const resultGroupList =
+      document.getElementById("resultGroupList");
+    const resultTotalValue =
+      document.getElementById("resultTotalValue");
+    const changeModeButton =
+      document.getElementById("changeModeButton");
+    const restartButton =
+      document.getElementById("restartButton");
+
+
+    const quantumComparisonGrid =
+      document.getElementById("quantumComparisonGrid");
+    const quantumComparisonUnavailable =
+      document.getElementById("quantumComparisonUnavailable");
+    const comparisonSlaterValue =
+      document.getElementById("comparisonSlaterValue");
+    const comparisonScfValue =
+      document.getElementById("comparisonScfValue");
+    const comparisonAbsoluteValue =
+      document.getElementById("comparisonAbsoluteValue");
+    const comparisonRelativeValue =
+      document.getElementById("comparisonRelativeValue");
+    const comparisonExplanationButton =
+      document.getElementById("comparisonExplanationButton");
+    const comparisonExplanation =
+      document.getElementById("comparisonExplanation");
+
+    const floatingFeedbackButton =
+      document.getElementById("floatingFeedbackButton");
+    const nextPanel = document.getElementById("nextPanel");
+    const nextPanelSymbol = document.getElementById("nextPanelSymbol");
+    const nextPanelName = document.getElementById("nextPanelName");
+    const nextPanelMeta = document.getElementById("nextPanelMeta");
+    const nextButton = document.getElementById("nextButton");
+
+
+    let currentSelectedElement = null;
+    let currentSelectedN = null;
+    let hoveredShellN = null;
+    let atomAnimationFrame = null;
+    let atomAnimationStart = performance.now();
+    let currentShellCounts = [];
+    let currentConfiguration = [];
+    let currentSelectedOrbital = null;
+    let currentSelectedElectron = null;
+    let currentCalculationMode = "auto";
+    let currentCalculationBreakdown = [];
+    let learningSelections = {};
+    let learningIsComplete = false;
+
+
+    function safeStorageGet(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+        // 저장소 접근이 제한된 환경에서도 계산기는 정상 작동합니다.
+      }
+    }
+
+    function safeStorageRemove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        // 저장소 접근이 제한된 환경에서도 계산기는 정상 작동합니다.
+      }
+    }
+
+    function showPeriodicTable() {
+      quantumScreen.classList.remove("is-visible");
+      quantumScreen.setAttribute("aria-hidden", "true");
+      orbitalScreen.classList.remove("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "true");
+      electronScreen.classList.remove("is-visible");
+      electronScreen.setAttribute("aria-hidden", "true");
+      calculationModeScreen.classList.remove("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "true");
+      learningScreen.classList.remove("is-visible");
+      learningScreen.setAttribute("aria-hidden", "true");
+      resultScreen.classList.remove("is-visible");
+      resultScreen.setAttribute("aria-hidden", "true");
+      shellNextPanel.classList.remove("is-visible");
+      orbitalChoicePanel.classList.remove("is-visible");
+      electronChoicePanel.classList.remove("is-visible");
+      modeNextPanel.classList.remove("is-visible");
+      learningResultPanel.classList.remove("is-visible");
+
+      introScreen.classList.add("is-hidden");
+      introScreen.setAttribute("aria-hidden", "true");
+
+      periodicScreen.classList.add("is-visible");
+      periodicScreen.setAttribute("aria-hidden", "false");
+      periodicScreen.scrollTop = 0;
+
+      window.setTimeout(() => {
+        floatingFeedbackButton.classList.add("is-visible");
+
+        if (currentSelectedElement) {
+          nextPanel.classList.add("is-visible");
+        }
+      }, 180);
+    }
+
+    function showIntro() {
+      periodicScreen.classList.remove("is-visible");
+      periodicScreen.setAttribute("aria-hidden", "true");
+      quantumScreen.classList.remove("is-visible");
+      quantumScreen.setAttribute("aria-hidden", "true");
+      orbitalScreen.classList.remove("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "true");
+      electronScreen.classList.remove("is-visible");
+      electronScreen.setAttribute("aria-hidden", "true");
+      calculationModeScreen.classList.remove("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "true");
+      learningScreen.classList.remove("is-visible");
+      learningScreen.setAttribute("aria-hidden", "true");
+      resultScreen.classList.remove("is-visible");
+      resultScreen.setAttribute("aria-hidden", "true");
+
+      introScreen.classList.remove("is-hidden");
+      introScreen.setAttribute("aria-hidden", "false");
+
+      floatingFeedbackButton.classList.remove("is-visible");
+      nextPanel.classList.remove("is-visible");
+      shellNextPanel.classList.remove("is-visible");
+      orbitalChoicePanel.classList.remove("is-visible");
+      electronChoicePanel.classList.remove("is-visible");
+      modeNextPanel.classList.remove("is-visible");
+      learningResultPanel.classList.remove("is-visible");
+    }
+
+    function createSeriesLabel(text, row, column) {
+      const label = document.createElement("div");
+      label.className = "series-label";
+      label.textContent = text;
+      label.style.gridRow = row;
+      label.style.gridColumn = column;
+      periodicTable.appendChild(label);
+    }
+
+    function renderPeriodicTable() {
+      createSeriesLabel("57–71\n란타넘족", 6, 3);
+      createSeriesLabel("89–103\n악티늄족", 7, 3);
+      createSeriesLabel("란타넘족", 9, 2);
+      createSeriesLabel("악티늄족", 10, 2);
+
+      elements.forEach(([z, symbol, name, row, column, category]) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "element";
+        button.style.gridRow = row;
+        button.style.gridColumn = column;
+        button.style.setProperty("--element-color", categoryData[category][1]);
+        button.dataset.atomicNumber = z;
+        button.dataset.symbol = symbol;
+        button.dataset.name = name;
+        button.dataset.category = category;
+
+        button.innerHTML = `
+          <span class="atomic-number">${z}</span>
+          <span class="element-symbol">${symbol}</span>
+          <span class="element-name">${name}</span>
+        `;
+
+        button.setAttribute(
+          "aria-label",
+          `${name}, 원소기호 ${symbol}, 원자번호 ${z}`
+        );
+
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".element.is-selected")
+            .forEach((item) => item.classList.remove("is-selected"));
+
+          button.classList.add("is-selected");
+          selectedElementText.textContent = `${z}. ${name} (${symbol})`;
+
+          currentSelectedElement = {
+            atomicNumber: z,
+            symbol,
+            name,
+            category
+          };
+
+          currentSelectedN = null;
+          currentSelectedOrbital = null;
+          currentSelectedElectron = null;
+          currentCalculationMode = "auto";
+          safeStorageRemove("slaterSelectedShell");
+          safeStorageRemove("slaterSelectedOrbital");
+          safeStorageRemove("slaterSelectedElectron");
+          updateNextPanel(currentSelectedElement);
+
+          safeStorageSet(
+            "slaterSelectedElement",
+            JSON.stringify(currentSelectedElement)
+          );
+        });
+
+        periodicTable.appendChild(button);
+      });
+    }
+
+    function renderLegend() {
+      Object.entries(categoryData).forEach(([key, [label, color]]) => {
+        const item = document.createElement("span");
+        item.className = "legend-item";
+        item.innerHTML = `
+          <span class="legend-dot" style="--legend-color:${color}"></span>
+          ${label}
+        `;
+        legend.appendChild(item);
+      });
+    }
+
+    function restoreSelection() {
+      const saved = safeStorageGet("slaterSelectedElement");
+      if (!saved) return;
+
+      try {
+        const data = JSON.parse(saved);
+        const target = document.querySelector(
+          `.element[data-atomic-number="${data.atomicNumber}"]`
+        );
+
+        if (target) {
+          target.classList.add("is-selected");
+          selectedElementText.textContent =
+            `${data.atomicNumber}. ${data.name} (${data.symbol})`;
+
+          currentSelectedElement = data;
+          updateNextPanel(data);
+        }
+      } catch (error) {
+        safeStorageRemove("slaterSelectedElement");
+      }
+    }
+
+
+    function updateNextPanel(data) {
+      const categoryLabel = categoryData[data.category]?.[0] ?? "원소";
+      const categoryColor = categoryData[data.category]?.[1] ?? "var(--primary)";
+
+      nextPanel.style.setProperty("--selected-color", categoryColor);
+      nextPanelSymbol.textContent = data.symbol;
+      nextPanelName.textContent = data.name;
+      nextPanelMeta.textContent =
+        `원자번호 ${data.atomicNumber} · ${categoryLabel}`;
+
+      if (periodicScreen.getAttribute("aria-hidden") === "false") {
+        nextPanel.classList.add("is-visible");
+      }
+    }
+
+
+    const superscriptDigits = {
+      "0":"⁰", "1":"¹", "2":"²", "3":"³", "4":"⁴",
+      "5":"⁵", "6":"⁶", "7":"⁷", "8":"⁸", "9":"⁹"
+    };
+
+    const subshellOrder = [
+      [1, "s", 2], [2, "s", 2], [2, "p", 6], [3, "s", 2],
+      [3, "p", 6], [4, "s", 2], [3, "d", 10], [4, "p", 6],
+      [5, "s", 2], [4, "d", 10], [5, "p", 6], [6, "s", 2],
+      [4, "f", 14], [5, "d", 10], [6, "p", 6], [7, "s", 2],
+      [5, "f", 14], [6, "d", 10], [7, "p", 6]
+    ];
+
+    const configurationExceptions = {
+      24: {"4s":1, "3d":5},
+      29: {"4s":1, "3d":10},
+      41: {"5s":1, "4d":4},
+      42: {"5s":1, "4d":5},
+      44: {"5s":1, "4d":7},
+      45: {"5s":1, "4d":8},
+      46: {"5s":0, "4d":10},
+      47: {"5s":1, "4d":10},
+      57: {"4f":0, "5d":1, "6s":2},
+      58: {"4f":1, "5d":1, "6s":2},
+      64: {"4f":7, "5d":1, "6s":2},
+      78: {"5d":9, "6s":1},
+      79: {"5d":10, "6s":1},
+      89: {"5f":0, "6d":1, "7s":2},
+      90: {"5f":0, "6d":2, "7s":2},
+      91: {"5f":2, "6d":1, "7s":2},
+      92: {"5f":3, "6d":1, "7s":2},
+      93: {"5f":4, "6d":1, "7s":2},
+      96: {"5f":7, "6d":1, "7s":2},
+      103: {"5f":14, "6d":0, "7s":2, "7p":1},
+      111: {"6d":10, "7s":1}
+    };
+
+    function toSuperscript(number) {
+      return String(number)
+        .split("")
+        .map((digit) => superscriptDigits[digit] ?? digit)
+        .join("");
+    }
+
+    function getPeriodFromAtomicNumber(z) {
+      if (z <= 2) return 1;
+      if (z <= 10) return 2;
+      if (z <= 18) return 3;
+      if (z <= 36) return 4;
+      if (z <= 54) return 5;
+      if (z <= 86) return 6;
+      return 7;
+    }
+
+    function getElectronConfiguration(z) {
+      let remaining = z;
+      const configuration = [];
+
+      subshellOrder.forEach(([n, orbital, capacity]) => {
+        if (remaining <= 0) return;
+        const electrons = Math.min(capacity, remaining);
+        configuration.push({ n, orbital, electrons });
+        remaining -= electrons;
+      });
+
+      const exception = configurationExceptions[z];
+      if (exception) {
+        Object.entries(exception).forEach(([key, electrons]) => {
+          const n = Number(key[0]);
+          const orbital = key[1];
+          let entry = configuration.find(
+            (item) => item.n === n && item.orbital === orbital
+          );
+
+          if (!entry) {
+            entry = { n, orbital, electrons: 0 };
+            configuration.push(entry);
+          }
+
+          entry.electrons = electrons;
+        });
+      }
+
+      return configuration
+        .filter((item) => item.electrons > 0)
+        .sort((a, b) => {
+          const orderA = subshellOrder.findIndex(
+            ([n, orbital]) => n === a.n && orbital === a.orbital
+          );
+          const orderB = subshellOrder.findIndex(
+            ([n, orbital]) => n === b.n && orbital === b.orbital
+          );
+          return orderA - orderB;
+        });
+    }
+
+    function getShellCounts(configuration, maxN) {
+      const counts = Array(maxN).fill(0);
+
+      configuration.forEach(({ n, electrons }) => {
+        if (n <= maxN) counts[n - 1] += electrons;
+      });
+
+      return counts;
+    }
+
+    function getShellConfigurationText(n) {
+      return currentConfiguration
+        .filter((item) => item.n === n)
+        .sort((a, b) => "spdf".indexOf(a.orbital) - "spdf".indexOf(b.orbital))
+        .map((item) => `${item.n}${item.orbital}${toSuperscript(item.electrons)}`)
+        .join(" ");
+    }
+
+    function showQuantumScreen() {
+      if (!currentSelectedElement) return;
+
+      periodicScreen.classList.remove("is-visible");
+      periodicScreen.setAttribute("aria-hidden", "true");
+      nextPanel.classList.remove("is-visible");
+
+      renderQuantumScreen();
+
+      quantumScreen.classList.add("is-visible");
+      quantumScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+
+      window.setTimeout(resizeAtomCanvas, 40);
+    }
+
+    function backToPeriodicScreen() {
+      quantumScreen.classList.remove("is-visible");
+      quantumScreen.setAttribute("aria-hidden", "true");
+      shellNextPanel.classList.remove("is-visible");
+
+      periodicScreen.classList.add("is-visible");
+      periodicScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+
+      if (currentSelectedElement) {
+        nextPanel.classList.add("is-visible");
+      }
+    }
+
+    function renderQuantumScreen() {
+      const data = currentSelectedElement;
+      const maxN = getPeriodFromAtomicNumber(data.atomicNumber);
+      const color = categoryHexData[data.category] ?? "#58c7ff";
+
+      currentConfiguration = getElectronConfiguration(data.atomicNumber);
+      currentShellCounts = getShellCounts(currentConfiguration, maxN);
+      currentSelectedN = null;
+      hoveredShellN = null;
+
+      quantumScreen.style.setProperty("--quantum-color", color);
+      quantumElementCard.style.setProperty("--quantum-color", color);
+      atomCore.style.setProperty("--quantum-color", color);
+      shellNextPanel.style.setProperty("--quantum-color", color);
+
+      quantumHeaderSymbol.textContent = data.symbol;
+      quantumHeaderName.textContent = `${data.atomicNumber}. ${data.name}`;
+      coreAtomicNumber.textContent = data.atomicNumber;
+      coreElementSymbol.textContent = data.symbol;
+      coreElementName.textContent = data.name;
+
+      shellGuideTitle.textContent = "전자껍질을 선택해 보세요";
+      shellGuideText.textContent =
+        `이 원소는 n = 1부터 n = ${maxN}까지 전자가 점유하고 있습니다.`;
+
+      shellNextPanel.classList.remove("is-visible");
+      renderQuantumNodes(maxN);
+      resizeAtomCanvas();
+    }
+
+    function renderQuantumNodes(maxN) {
+      quantumNodes.innerHTML = "";
+
+      for (let n = 1; n <= maxN; n += 1) {
+        const ratio = maxN === 1 ? 0.5 : (n - 1) / (maxN - 1);
+        const y = 23 + ratio * 56;
+        const curve = Math.sin(ratio * Math.PI);
+        const x = 79 + curve * 7;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "quantum-node";
+        button.dataset.n = n;
+        button.style.left = `${x}%`;
+        button.style.top = `${y}%`;
+        button.style.setProperty(
+          "--quantum-color",
+          categoryHexData[currentSelectedElement.category] ?? "#58c7ff"
+        );
+
+        button.innerHTML = `
+          <span class="radio-ring" aria-hidden="true"></span>
+          <span class="node-copy">
+            <strong>n = ${n}</strong>
+            <small>${currentShellCounts[n - 1]}e⁻</small>
+          </span>
+        `;
+
+        button.addEventListener("mouseenter", () => {
+          hoveredShellN = n;
+          shellGuideTitle.textContent = `n = ${n} 전자껍질`;
+          shellGuideText.textContent =
+            `${currentShellCounts[n - 1]}개의 전자 · ${getShellConfigurationText(n)}`;
+        });
+
+        button.addEventListener("mouseleave", () => {
+          hoveredShellN = null;
+
+          if (currentSelectedN) {
+            updateShellGuide(currentSelectedN);
+          } else {
+            shellGuideTitle.textContent = "전자껍질을 선택해 보세요";
+            shellGuideText.textContent =
+              `이 원소는 n = 1부터 n = ${maxN}까지 전자가 점유하고 있습니다.`;
+          }
+        });
+
+        button.addEventListener("click", () => {
+          selectPrincipalQuantumNumber(n);
+        });
+
+        quantumNodes.appendChild(button);
+      }
+    }
+
+    function updateShellGuide(n) {
+      shellGuideTitle.textContent = `n = ${n} 선택됨`;
+      shellGuideText.textContent =
+        `${currentShellCounts[n - 1]}개의 전자 · ${getShellConfigurationText(n)}`;
+    }
+
+    function selectPrincipalQuantumNumber(n) {
+      currentSelectedN = n;
+      currentSelectedOrbital = null;
+      currentSelectedElectron = null;
+      currentCalculationMode = "auto";
+      safeStorageRemove("slaterSelectedOrbital");
+      safeStorageRemove("slaterSelectedElectron");
+      orbitalChoicePanel.classList.remove("is-visible");
+      electronChoicePanel.classList.remove("is-visible");
+
+      document.querySelectorAll(".quantum-node").forEach((button) => {
+        button.classList.toggle("is-selected", Number(button.dataset.n) === n);
+      });
+
+      const shellText = getShellConfigurationText(n);
+      updateShellGuide(n);
+      shellChoiceTitle.textContent =
+        `n = ${n} · ${currentShellCounts[n - 1]}개의 전자`;
+      shellChoiceConfig.textContent = shellText || "점유 오비탈 정보 없음";
+      shellNextPanel.classList.add("is-visible");
+
+      safeStorageSet(
+        "slaterSelectedShell",
+        JSON.stringify({
+          atomicNumber: currentSelectedElement.atomicNumber,
+          n
+        })
+      );
+    }
+
+    function hexToRgba(hex, alpha) {
+      const clean = hex.replace("#", "");
+      const value = parseInt(clean, 16);
+      const r = (value >> 16) & 255;
+      const g = (value >> 8) & 255;
+      const b = value & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function rotatePoint(point, ax, ay, az) {
+      let [x, y, z] = point;
+
+      let cy = Math.cos(ax);
+      let sy = Math.sin(ax);
+      [y, z] = [y * cy - z * sy, y * sy + z * cy];
+
+      cy = Math.cos(ay);
+      sy = Math.sin(ay);
+      [x, z] = [x * cy + z * sy, -x * sy + z * cy];
+
+      cy = Math.cos(az);
+      sy = Math.sin(az);
+      [x, y] = [x * cy - y * sy, x * sy + y * cy];
+
+      return [x, y, z];
+    }
+
+    function projectPoint(point, centerX, centerY) {
+      const [x, y, z] = point;
+      const perspective = 900 / (900 + z);
+      return [
+        centerX + x * perspective,
+        centerY + y * perspective,
+        z,
+        perspective
+      ];
+    }
+
+    function resizeAtomCanvas() {
+      const rect = atomWorkspace.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      atomCanvas.width = Math.round(rect.width * dpr);
+      atomCanvas.height = Math.round(rect.height * dpr);
+      atomCanvas.style.width = `${rect.width}px`;
+      atomCanvas.style.height = `${rect.height}px`;
+      atomCanvas.dataset.dpr = dpr;
+    }
+
+    function drawAtomModel(timestamp) {
+      const context = atomCanvas.getContext("2d");
+      const dpr = Number(atomCanvas.dataset.dpr || 1);
+      const width = atomCanvas.width / dpr;
+      const height = atomCanvas.height / dpr;
+
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.clearRect(0, 0, width, height);
+
+      if (
+        quantumScreen.getAttribute("aria-hidden") === "false" &&
+        currentSelectedElement &&
+        width > 0 &&
+        height > 0
+      ) {
+        const maxN = currentShellCounts.length;
+        const centerX = width * 0.5;
+        const centerY = height * 0.5;
+        const color =
+          categoryHexData[currentSelectedElement.category] ?? "#58c7ff";
+        const elapsed = (timestamp - atomAnimationStart) / 1000;
+        const minDimension = Math.min(width, height);
+        const outerRadius = Math.min(minDimension * 0.39, width * 0.29);
+        const innerRadius = Math.max(72, outerRadius * 0.28);
+        const radiusStep =
+          maxN <= 1 ? 0 : (outerRadius - innerRadius) / (maxN - 1);
+
+        for (let n = 1; n <= maxN; n += 1) {
+          const radius = innerRadius + (n - 1) * radiusStep;
+          const isSelected = currentSelectedN === n;
+          const isHovered = hoveredShellN === n;
+          const dimmed = currentSelectedN && !isSelected && !isHovered;
+          const emphasis = isSelected ? 1 : isHovered ? 0.78 : dimmed ? 0.16 : 0.34;
+
+          const planes = [
+            [0.72 + n * 0.035, 0.23 + n * 0.09, -0.34 + n * 0.24],
+            [-0.54 + n * 0.02, 0.68 - n * 0.035, 0.46 - n * 0.18]
+          ];
+
+          planes.forEach(([ax, ay, az], planeIndex) => {
+            context.beginPath();
+
+            for (let step = 0; step <= 170; step += 1) {
+              const angle = (step / 170) * Math.PI * 2;
+              const point = rotatePoint(
+                [Math.cos(angle) * radius, Math.sin(angle) * radius * 0.72, 0],
+                ax,
+                ay,
+                az
+              );
+              const [x, y] = projectPoint(point, centerX, centerY);
+
+              if (step === 0) context.moveTo(x, y);
+              else context.lineTo(x, y);
+            }
+
+            context.strokeStyle = hexToRgba(
+              color,
+              emphasis * (planeIndex === 0 ? 0.72 : 0.48)
+            );
+            context.lineWidth = isSelected ? 2.2 : isHovered ? 1.7 : 1;
+            context.shadowColor = hexToRgba(color, isSelected ? 0.72 : 0.2);
+            context.shadowBlur = isSelected ? 14 : isHovered ? 9 : 3;
+            context.stroke();
+          });
+
+          const electronCount = currentShellCounts[n - 1] || 0;
+          const electronPoints = [];
+
+          for (let electron = 0; electron < electronCount; electron += 1) {
+            const planeIndex = electron % 2;
+            const [ax, ay, az] = planes[planeIndex];
+            const speed = 0.34 + 0.08 * n + planeIndex * 0.045;
+            const direction = planeIndex === 0 ? 1 : -1;
+            const phase =
+              (electron / Math.max(electronCount, 1)) * Math.PI * 2 +
+              elapsed * speed * direction +
+              planeIndex * 0.8;
+
+            const point = rotatePoint(
+              [Math.cos(phase) * radius, Math.sin(phase) * radius * 0.72, 0],
+              ax,
+              ay,
+              az
+            );
+            const projected = projectPoint(point, centerX, centerY);
+            electronPoints.push(projected);
+          }
+
+          electronPoints.sort((a, b) => a[2] - b[2]);
+
+          electronPoints.forEach(([x, y, z, perspective]) => {
+            const frontFactor = 0.75 + perspective * 0.3;
+            const baseRadius = isSelected ? 4.1 : isHovered ? 3.5 : 2.65;
+            const radiusPx = baseRadius * frontFactor;
+            const alpha = dimmed ? 0.18 : isSelected ? 0.98 : isHovered ? 0.84 : 0.62;
+
+            context.beginPath();
+            context.arc(x, y, radiusPx, 0, Math.PI * 2);
+            context.fillStyle = hexToRgba(color, alpha);
+            context.shadowColor = hexToRgba(color, isSelected ? 0.95 : 0.5);
+            context.shadowBlur = isSelected ? 13 : 7;
+            context.fill();
+
+            context.beginPath();
+            context.arc(
+              x - radiusPx * 0.28,
+              y - radiusPx * 0.28,
+              Math.max(0.7, radiusPx * 0.24),
+              0,
+              Math.PI * 2
+            );
+            context.fillStyle = `rgba(255,255,255,${dimmed ? 0.15 : 0.76})`;
+            context.shadowBlur = 0;
+            context.fill();
+          });
+        }
+
+        context.shadowBlur = 0;
+      }
+
+      atomAnimationFrame = requestAnimationFrame(drawAtomModel);
+    }
+
+    const atomResizeObserver = new ResizeObserver(resizeAtomCanvas);
+    atomResizeObserver.observe(atomWorkspace);
+
+    if (!atomAnimationFrame) {
+      atomAnimationFrame = requestAnimationFrame(drawAtomModel);
+    }
+
+
+    const orbitalMeta = {
+      s: {
+        minN: 1,
+        capacity: 2,
+        boxes: 1,
+        name: "s 오비탈",
+        description: "구형 대칭의 전자 분포"
+      },
+      p: {
+        minN: 2,
+        capacity: 6,
+        boxes: 3,
+        name: "p 오비탈",
+        description: "세 방향의 아령형 전자 분포"
+      },
+      d: {
+        minN: 3,
+        capacity: 10,
+        boxes: 5,
+        name: "d 오비탈",
+        description: "다섯 방향의 복합 전자 분포"
+      },
+      f: {
+        minN: 4,
+        capacity: 14,
+        boxes: 7,
+        name: "f 오비탈",
+        description: "일곱 방향의 복잡한 전자 분포"
+      }
+    };
+
+    function hideLaterScreens() {
+      orbitalScreen.classList.remove("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "true");
+      electronScreen.classList.remove("is-visible");
+      electronScreen.setAttribute("aria-hidden", "true");
+      orbitalChoicePanel.classList.remove("is-visible");
+      electronChoicePanel.classList.remove("is-visible");
+    }
+
+    function getSubshellEntry(n, orbital) {
+      return currentConfiguration.find(
+        (item) => item.n === n && item.orbital === orbital
+      ) ?? null;
+    }
+
+    function getOrbitalShapeMarkup(orbital) {
+      if (orbital === "s") {
+        return '<div class="orbital-shape shape-s"></div>';
+      }
+
+      if (orbital === "p") {
+        return '<div class="orbital-shape shape-p"></div>';
+      }
+
+      if (orbital === "d") {
+        return `
+          <div class="orbital-shape shape-d">
+            <span class="lobe"></span><span class="lobe"></span>
+            <span class="lobe"></span><span class="lobe"></span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="orbital-shape shape-f">
+          <span class="lobe"></span><span class="lobe"></span>
+          <span class="lobe"></span><span class="lobe"></span>
+          <span class="lobe"></span><span class="lobe"></span>
+        </div>
+      `;
+    }
+
+    function showOrbitalScreen() {
+      if (!currentSelectedElement || !currentSelectedN) return;
+
+      quantumScreen.classList.remove("is-visible");
+      quantumScreen.setAttribute("aria-hidden", "true");
+      shellNextPanel.classList.remove("is-visible");
+      electronScreen.classList.remove("is-visible");
+      electronScreen.setAttribute("aria-hidden", "true");
+      electronChoicePanel.classList.remove("is-visible");
+
+      renderOrbitalScreen();
+
+      orbitalScreen.classList.add("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+    }
+
+    function backToQuantumScreen() {
+      orbitalScreen.classList.remove("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "true");
+      orbitalChoicePanel.classList.remove("is-visible");
+      electronChoicePanel.classList.remove("is-visible");
+
+      quantumScreen.classList.add("is-visible");
+      quantumScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+
+      if (currentSelectedN) {
+        shellNextPanel.classList.add("is-visible");
+      }
+
+      window.setTimeout(resizeAtomCanvas, 40);
+    }
+
+    function renderOrbitalScreen() {
+      const color =
+        categoryHexData[currentSelectedElement.category] ?? "#58c7ff";
+
+      orbitalScreen.style.setProperty("--quantum-color", color);
+      orbitalChoicePanel.style.setProperty("--quantum-color", color);
+      orbitalHeaderSummary.textContent =
+        `${currentSelectedElement.symbol} · n = ${currentSelectedN}`;
+      orbitalIntroTitle.textContent =
+        `n = ${currentSelectedN} 전자껍질의 오비탈`;
+      orbitalIntroText.textContent =
+        `${getShellConfigurationText(currentSelectedN)} · 점유된 오비탈만 선택 가능합니다.`;
+
+      orbitalGrid.innerHTML = "";
+      orbitalChoicePanel.classList.remove("is-visible");
+      currentSelectedOrbital = null;
+      currentSelectedElectron = null;
+
+      ["s", "p", "d", "f"].forEach((orbital) => {
+        const meta = orbitalMeta[orbital];
+        const entry = getSubshellEntry(currentSelectedN, orbital);
+        const occupied = entry?.electrons ?? 0;
+        const allowedByN = currentSelectedN >= meta.minN;
+        const selectable = allowedByN && occupied > 0;
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "orbital-card";
+        card.dataset.orbital = orbital;
+        card.disabled = !selectable;
+        card.style.setProperty("--quantum-color", color);
+
+        let status = "";
+        if (!allowedByN) {
+          status = `n ≥ ${meta.minN}에서 존재`;
+        } else if (!occupied) {
+          status = "현재 원소에서 미점유";
+        } else {
+          status = `${currentSelectedN}${orbital}${toSuperscript(occupied)} · ${occupied}e⁻`;
+        }
+
+        card.innerHTML = `
+          <span class="orbital-letter">${orbital}</span>
+          <div class="orbital-visual">
+            ${getOrbitalShapeMarkup(orbital)}
+          </div>
+          <h3>${meta.name}</h3>
+          <p>${meta.description}<br>최대 ${meta.capacity}개의 전자 수용</p>
+          <span class="orbital-status">${status}</span>
+        `;
+
+        if (selectable) {
+          card.addEventListener("click", () => {
+            selectOrbital(orbital, occupied);
+          });
+        }
+
+        orbitalGrid.appendChild(card);
+      });
+    }
+
+    function selectOrbital(orbital, occupied) {
+      currentSelectedOrbital = orbital;
+      currentSelectedElectron = null;
+      currentCalculationMode = "auto";
+
+      document.querySelectorAll(".orbital-card").forEach((card) => {
+        card.classList.toggle(
+          "is-selected",
+          card.dataset.orbital === orbital
+        );
+      });
+
+      orbitalChoiceTitle.textContent =
+        `${currentSelectedN}${orbital} 오비탈`;
+      orbitalChoiceCopy.textContent =
+        `${occupied}개의 전자가 점유 · 같은 전자군은 동일하게 계산`;
+      orbitalChoicePanel.classList.add("is-visible");
+
+      safeStorageSet(
+        "slaterSelectedOrbital",
+        JSON.stringify({
+          atomicNumber: currentSelectedElement.atomicNumber,
+          n: currentSelectedN,
+          orbital
+        })
+      );
+    }
+
+    function showElectronScreen() {
+      if (
+        !currentSelectedElement ||
+        !currentSelectedN ||
+        !currentSelectedOrbital
+      ) return;
+
+      orbitalScreen.classList.remove("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "true");
+      orbitalChoicePanel.classList.remove("is-visible");
+
+      renderElectronScreen();
+
+      electronScreen.classList.add("is-visible");
+      electronScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+    }
+
+    function backToOrbitalScreen() {
+      electronScreen.classList.remove("is-visible");
+      electronScreen.setAttribute("aria-hidden", "true");
+      electronChoicePanel.classList.remove("is-visible");
+
+      orbitalScreen.classList.add("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+
+      if (currentSelectedOrbital) {
+        orbitalChoicePanel.classList.add("is-visible");
+      }
+    }
+
+    function getElectronFill(boxCount, electronCount) {
+      const fill = [];
+      const firstPass = Math.min(boxCount, electronCount);
+
+      for (let i = 0; i < firstPass; i += 1) {
+        fill.push({ box: i, direction: "up", number: i + 1 });
+      }
+
+      const pairedCount = Math.max(0, electronCount - boxCount);
+      for (let i = 0; i < pairedCount; i += 1) {
+        fill.push({
+          box: i,
+          direction: "down",
+          number: boxCount + i + 1
+        });
+      }
+
+      return fill;
+    }
+
+    function renderElectronScreen() {
+      const entry = getSubshellEntry(
+        currentSelectedN,
+        currentSelectedOrbital
+      );
+      const electronCount = entry?.electrons ?? 0;
+      const meta = orbitalMeta[currentSelectedOrbital];
+      const color =
+        categoryHexData[currentSelectedElement.category] ?? "#58c7ff";
+      const notation =
+        `${currentSelectedN}${currentSelectedOrbital}${toSuperscript(electronCount)}`;
+
+      electronScreen.style.setProperty("--quantum-color", color);
+      electronChoicePanel.style.setProperty("--quantum-color", color);
+      electronHeaderSummary.textContent =
+        `${currentSelectedElement.symbol} · ${notation}`;
+      diagramTitle.textContent = `${notation} 오비탈 상자`;
+      electronPickerCopy.textContent =
+        `이 오비탈에는 ${electronCount}개의 전자가 들어 있습니다.`;
+      diagramCaption.textContent =
+        "전자를 선택하면 해당 화살표와 전자 번호가 강조됩니다.";
+
+      currentSelectedElectron = null;
+      electronChoicePanel.classList.remove("is-visible");
+      renderOrbitalBoxes(meta.boxes, electronCount);
+      renderElectronChoices(electronCount);
+    }
+
+    function renderOrbitalBoxes(boxCount, electronCount) {
+      orbitalBoxes.innerHTML = "";
+      const fill = getElectronFill(boxCount, electronCount);
+
+      for (let boxIndex = 0; boxIndex < boxCount; boxIndex += 1) {
+        const box = document.createElement("div");
+        box.className = "orbital-box";
+
+        fill
+          .filter((electron) => electron.box === boxIndex)
+          .forEach((electron) => {
+            const arrow = document.createElement("span");
+            arrow.className =
+              `electron-arrow ${electron.direction === "down" ? "down" : ""}`;
+            arrow.dataset.electron = electron.number;
+            arrow.innerHTML = `
+              ${electron.direction === "down" ? "↓" : "↑"}
+              <span class="electron-arrow-number">${electron.number}</span>
+            `;
+            box.appendChild(arrow);
+          });
+
+        orbitalBoxes.appendChild(box);
+      }
+    }
+
+    function renderElectronChoices(electronCount) {
+      electronGrid.innerHTML = "";
+
+      for (let electron = 1; electron <= electronCount; electron += 1) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "electron-choice";
+        button.dataset.electron = electron;
+        button.innerHTML = `
+          <strong>${electron}번째</strong>
+          <span>전자 e⁻</span>
+        `;
+
+        button.addEventListener("click", () => {
+          selectElectron(electron);
+        });
+
+        electronGrid.appendChild(button);
+      }
+    }
+
+    function selectElectron(electron) {
+      currentSelectedElectron = electron;
+      currentCalculationMode = "auto";
+
+      document.querySelectorAll(".electron-choice").forEach((button) => {
+        button.classList.toggle(
+          "is-selected",
+          Number(button.dataset.electron) === electron
+        );
+      });
+
+      document.querySelectorAll(".electron-arrow").forEach((arrow) => {
+        arrow.classList.toggle(
+          "is-selected",
+          Number(arrow.dataset.electron) === electron
+        );
+      });
+
+      electronChoiceTitle.textContent =
+        `${currentSelectedN}${currentSelectedOrbital}의 ${electron}번째 전자`;
+      electronChoiceCopy.textContent =
+        `${currentSelectedElement.name}(${currentSelectedElement.symbol}) · 원자번호 ${currentSelectedElement.atomicNumber}`;
+      electronChoicePanel.classList.add("is-visible");
+
+      safeStorageSet(
+        "slaterSelectedElectron",
+        JSON.stringify({
+          atomicNumber: currentSelectedElement.atomicNumber,
+          n: currentSelectedN,
+          orbital: currentSelectedOrbital,
+          electron
+        })
+      );
+    }
+
+
+    const slaterGroupDefinitions = [
+      { key: "1s", members: [[1, "s"]] },
+      { key: "2sp", members: [[2, "s"], [2, "p"]] },
+      { key: "3sp", members: [[3, "s"], [3, "p"]] },
+      { key: "3d", members: [[3, "d"]] },
+      { key: "4sp", members: [[4, "s"], [4, "p"]] },
+      { key: "4d", members: [[4, "d"]] },
+      { key: "4f", members: [[4, "f"]] },
+      { key: "5sp", members: [[5, "s"], [5, "p"]] },
+      { key: "5d", members: [[5, "d"]] },
+      { key: "5f", members: [[5, "f"]] },
+      { key: "6sp", members: [[6, "s"], [6, "p"]] },
+      { key: "6d", members: [[6, "d"]] },
+      { key: "7sp", members: [[7, "s"], [7, "p"]] }
+    ];
+
+    const calculationModeContent = {
+      auto: {
+        title: "자동 계산",
+        icon: "A",
+        description:
+          "슬레이터 규칙을 자동으로 적용하여 차폐 상수와 유효 핵전하를 계산합니다.",
+        panelCopy: "슬레이터 규칙을 자동 적용합니다.",
+        buttonText: "차폐 상수 계산하기 →"
+      },
+      learning: {
+        title: "학습 모드",
+        icon: "L",
+        description:
+          "전자군을 직접 분류하고 차폐 계수를 선택하며 슬레이터 규칙의 계산 과정을 단계별로 익힙니다.",
+        panelCopy: "전자군과 차폐 계수를 직접 선택합니다.",
+        buttonText: "전자군 분류 시작하기 →"
+      }
+    };
+
+    function formatFullConfiguration() {
+      return currentConfiguration
+        .map(
+          (item) =>
+            `${item.n}${item.orbital}${toSuperscript(item.electrons)}`
+        )
+        .join(" ");
+    }
+
+    function getTargetSlaterGroupKey(n, orbital) {
+      if (n === 1 && orbital === "s") return "1s";
+      if (orbital === "s" || orbital === "p") return `${n}sp`;
+      return `${n}${orbital}`;
+    }
+
+    function getSlaterGroups() {
+      return slaterGroupDefinitions
+        .map((definition) => {
+          const entries = definition.members
+            .map(([n, orbital]) =>
+              currentConfiguration.find(
+                (item) =>
+                  item.n === n &&
+                  item.orbital === orbital &&
+                  item.electrons > 0
+              )
+            )
+            .filter(Boolean);
+
+          if (!entries.length) return null;
+
+          return {
+            key: definition.key,
+            entries,
+            electrons: entries.reduce(
+              (sum, entry) => sum + entry.electrons,
+              0
+            ),
+            label: entries
+              .map(
+                (entry) =>
+                  `${entry.n}${entry.orbital}${toSuperscript(entry.electrons)}`
+              )
+              .join(" ")
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function renderSlaterGroupPreview() {
+      const targetKey = getTargetSlaterGroupKey(
+        currentSelectedN,
+        currentSelectedOrbital
+      );
+
+      slaterGroups.innerHTML = "";
+
+      getSlaterGroups().forEach((group) => {
+        const card = document.createElement("div");
+        card.className = "slater-group-card";
+        card.classList.toggle("is-target", group.key === targetKey);
+
+        card.innerHTML = `
+          <strong>${group.label}</strong>
+          <span>${
+            group.key === targetKey
+              ? `대상 전자군 · ${group.electrons}e⁻`
+              : `${group.electrons}e⁻`
+          }</span>
+        `;
+
+        slaterGroups.appendChild(card);
+      });
+    }
+
+    function showCalculationModeScreen() {
+      if (
+        !currentSelectedElement ||
+        !currentSelectedN ||
+        !currentSelectedOrbital
+      ) return;
+
+      orbitalScreen.classList.remove("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "true");
+      orbitalChoicePanel.classList.remove("is-visible");
+      electronScreen.classList.remove("is-visible");
+      electronScreen.setAttribute("aria-hidden", "true");
+      electronChoicePanel.classList.remove("is-visible");
+
+      renderCalculationModeScreen();
+
+      calculationModeScreen.classList.add("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+      modeNextPanel.classList.add("is-visible");
+    }
+
+    function backToElectronScreen() {
+      calculationModeScreen.classList.remove("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "true");
+      modeNextPanel.classList.remove("is-visible");
+
+      orbitalScreen.classList.add("is-visible");
+      orbitalScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+
+      if (currentSelectedOrbital) {
+        orbitalChoicePanel.classList.add("is-visible");
+      }
+    }
+
+    function renderCalculationModeScreen() {
+      const color =
+        categoryHexData[currentSelectedElement.category] ?? "#58c7ff";
+      const entry = getSubshellEntry(
+        currentSelectedN,
+        currentSelectedOrbital
+      );
+      const occupied = entry?.electrons ?? 0;
+      const notation =
+        `${currentSelectedN}${currentSelectedOrbital}${toSuperscript(occupied)}`;
+
+      calculationModeScreen.style.setProperty("--quantum-color", color);
+      modeNextPanel.style.setProperty("--quantum-color", color);
+
+      modeHeaderSummary.textContent =
+        `${currentSelectedElement.symbol} · ` +
+        `${currentSelectedN}${currentSelectedOrbital} 전자`;
+
+      modeElementSymbol.textContent = currentSelectedElement.symbol;
+      modeTargetTitle.textContent =
+        `${currentSelectedElement.name} · ${notation} 전자군`;
+      modeConfigurationText.textContent =
+        `전자배치: ${formatFullConfiguration()}`;
+
+      renderSlaterGroupPreview();
+      selectCalculationMode("auto", false);
+    }
+
+    function selectCalculationMode(mode, animate = true) {
+      currentCalculationMode = mode;
+      const content = calculationModeContent[mode];
+
+      automaticModeButton.classList.toggle(
+        "is-selected",
+        mode === "auto"
+      );
+      learningModeButton.classList.toggle(
+        "is-selected",
+        mode === "learning"
+      );
+
+      const applyContent = () => {
+        modeDescriptionIcon.textContent = content.icon;
+        modeDescriptionTitle.textContent = content.title;
+        modeDescriptionText.textContent = content.description;
+        modeChoiceTitle.textContent = content.title;
+        modeChoiceCopy.textContent = content.panelCopy;
+        modeNextButton.textContent = content.buttonText;
+        modeDescription.classList.remove("is-changing");
+      };
+
+      if (animate) {
+        modeDescription.classList.add("is-changing");
+        window.setTimeout(applyContent, 130);
+      } else {
+        applyContent();
+      }
+
+      safeStorageSet("slaterCalculationMode", mode);
+    }
+
+
+
+    const clementiRaimondiScfData = {"1":{"1s":1.0},"2":{"1s":1.688},"3":{"1s":2.691,"2s":1.279},"4":{"1s":3.685,"2s":1.912},"5":{"1s":4.68,"2s":2.576,"2p":2.421},"6":{"1s":5.673,"2s":3.217,"2p":3.136},"7":{"1s":6.665,"2s":3.847,"2p":3.834},"8":{"1s":7.658,"2s":4.492,"2p":4.453},"9":{"1s":8.65,"2s":5.128,"2p":5.1},"10":{"1s":9.642,"2s":5.758,"2p":5.758},"11":{"1s":10.626,"2s":6.571,"2p":6.802,"3s":2.507},"12":{"1s":11.609,"2s":7.392,"2p":7.826,"3s":3.308},"13":{"1s":12.591,"2s":8.214,"2p":8.963,"3s":4.117,"3p":4.066},"14":{"1s":13.575,"2s":9.02,"2p":9.945,"3s":4.903,"3p":4.285},"15":{"1s":14.558,"2s":9.825,"2p":10.961,"3s":5.642,"3p":4.886},"16":{"1s":15.541,"2s":10.629,"2p":11.977,"3s":6.367,"3p":5.482},"17":{"1s":16.524,"2s":11.43,"2p":12.993,"3s":7.068,"3p":6.116},"18":{"1s":17.508,"2s":12.23,"2p":14.008,"3s":7.757,"3p":6.764},"19":{"1s":18.49,"2s":13.006,"2p":15.027,"3s":8.68,"3p":7.726,"4s":3.495},"20":{"1s":19.473,"2s":13.776,"2p":16.041,"3s":9.602,"3p":8.658,"4s":4.398},"21":{"1s":20.457,"2s":14.574,"2p":17.055,"3s":10.34,"3p":9.406,"4s":4.632,"3d":7.12},"22":{"1s":21.441,"2s":15.377,"2p":18.065,"3s":11.033,"3p":10.104,"4s":4.817,"3d":8.141},"23":{"1s":22.426,"2s":16.181,"2p":19.073,"3s":11.709,"3p":10.785,"4s":4.981,"3d":8.983},"24":{"1s":23.414,"2s":16.984,"2p":20.075,"3s":12.368,"3p":11.466,"4s":5.133,"3d":9.757},"25":{"1s":24.396,"2s":17.794,"2p":21.084,"3s":13.018,"3p":12.109,"4s":5.283,"3d":10.528},"26":{"1s":25.381,"2s":18.599,"2p":22.089,"3s":13.676,"3p":12.778,"4s":5.434,"3d":11.18},"27":{"1s":26.367,"2s":19.405,"2p":23.092,"3s":14.322,"3p":13.435,"4s":5.576,"3d":11.855},"28":{"1s":27.353,"2s":20.213,"2p":24.095,"3s":14.961,"3p":14.085,"4s":5.711,"3d":12.53},"29":{"1s":28.339,"2s":21.02,"2p":25.097,"3s":15.594,"3p":14.731,"4s":5.842,"3d":13.201},"30":{"1s":29.325,"2s":21.828,"2p":26.098,"3s":16.219,"3p":15.369,"4s":5.965,"3d":13.878},"31":{"1s":30.309,"2s":22.599,"2p":27.091,"3s":16.996,"3p":16.204,"4s":7.067,"3d":15.093,"4p":6.222},"32":{"1s":31.294,"2s":23.365,"2p":28.082,"3s":17.79,"3p":17.014,"4s":8.044,"3d":16.251,"4p":6.78},"33":{"1s":32.278,"2s":24.127,"2p":29.074,"3s":18.596,"3p":17.85,"4s":8.944,"3d":17.378,"4p":7.449},"34":{"1s":33.262,"2s":24.888,"2p":30.065,"3s":19.403,"3p":18.705,"4s":9.758,"3d":18.477,"4p":8.287},"35":{"1s":34.247,"2s":25.643,"2p":31.056,"3s":20.219,"3p":19.571,"4s":10.553,"3d":19.559,"4p":9.028},"36":{"1s":35.232,"2s":26.398,"2p":32.047,"3s":21.033,"3p":20.434,"4s":11.316,"3d":20.626,"4p":9.338},"37":{"1s":36.208,"2s":27.157,"2p":33.039,"3s":21.843,"3p":21.303,"4s":12.388,"3d":21.679,"4p":10.881,"5s":4.985},"38":{"1s":37.191,"2s":27.902,"2p":34.03,"3s":22.664,"3p":22.168,"4s":13.444,"3d":22.726,"4p":11.932,"5s":6.071},"39":{"1s":38.176,"2s":28.622,"2p":35.003,"3s":23.552,"3p":23.093,"4s":14.264,"3d":25.397,"4p":12.746,"5s":6.256,"4d":15.958},"40":{"1s":39.159,"2s":29.374,"2p":35.993,"3s":24.362,"3p":23.846,"4s":14.902,"3d":25.567,"4p":13.46,"5s":6.446,"4d":13.072},"41":{"1s":40.142,"2s":30.125,"2p":36.982,"3s":25.172,"3p":24.616,"4s":15.283,"3d":26.247,"4p":14.084,"5s":5.921,"4d":11.238},"42":{"1s":41.126,"2s":30.877,"2p":37.972,"3s":25.982,"3p":25.474,"4s":16.096,"3d":27.228,"4p":14.977,"5s":6.106,"4d":11.392},"43":{"1s":42.109,"2s":31.628,"2p":38.941,"3s":26.792,"3p":26.384,"4s":17.198,"3d":28.353,"4p":15.811,"5s":7.227,"4d":12.882},"44":{"1s":43.092,"2s":32.38,"2p":39.951,"3s":27.601,"3p":27.221,"4s":17.656,"3d":29.359,"4p":16.435,"5s":6.485,"4d":12.813},"45":{"1s":44.076,"2s":33.155,"2p":40.94,"3s":28.439,"3p":28.154,"4s":18.582,"3d":30.405,"4p":17.14,"5s":6.64,"4d":13.442},"46":{"1s":45.059,"2s":33.883,"2p":41.93,"3s":29.221,"3p":29.02,"4s":18.986,"3d":31.451,"4p":17.723,"4d":13.618},"47":{"1s":46.042,"2s":34.634,"2p":42.919,"3s":30.031,"3p":29.809,"4s":19.865,"3d":32.54,"4p":18.562,"5s":6.756,"4d":14.763},"48":{"1s":47.026,"2s":35.386,"2p":43.909,"3s":30.841,"3p":30.692,"4s":20.869,"3d":33.607,"4p":19.411,"5s":8.192,"4d":15.877},"49":{"1s":48.01,"2s":36.124,"2p":44.898,"3s":31.631,"3p":31.521,"4s":21.761,"3d":34.678,"4p":20.369,"5s":9.512,"4d":16.942,"5p":8.47},"50":{"1s":48.992,"2s":36.859,"2p":45.885,"3s":32.42,"3p":32.353,"4s":22.658,"3d":35.742,"4p":21.265,"5s":10.629,"4d":17.97,"5p":9.102},"51":{"1s":49.974,"2s":37.595,"2p":46.873,"3s":33.209,"3p":33.184,"4s":23.544,"3d":36.8,"4p":22.181,"5s":11.617,"4d":18.974,"5p":9.995},"52":{"1s":50.957,"2s":38.331,"2p":47.86,"3s":33.998,"3p":34.009,"4s":24.408,"3d":37.839,"4p":23.122,"5s":12.538,"4d":19.96,"5p":10.809},"53":{"1s":51.939,"2s":39.067,"2p":48.847,"3s":34.787,"3p":34.841,"4s":25.297,"3d":38.901,"4p":24.03,"5s":13.404,"4d":20.934,"5p":11.612},"54":{"1s":52.922,"2s":39.803,"2p":49.835,"3s":35.576,"3p":35.668,"4s":26.173,"3d":39.947,"4p":24.957,"5s":14.218,"4d":21.893,"5p":12.425}};
+
+    const coefficientChoices = [0, 0.30, 0.35, 0.85, 1.00];
+
+    function roundToTwo(value) {
+      return Math.round((value + Number.EPSILON) * 100) / 100;
+    }
+
+    function formatDecimal(value) {
+      return Number(value).toFixed(2);
+    }
+
+    function getGroupPrincipalN(group) {
+      return Math.max(...group.entries.map((entry) => entry.n));
+    }
+
+    function buildCalculationBreakdown() {
+      const groups = getSlaterGroups();
+      const targetKey = getTargetSlaterGroupKey(
+        currentSelectedN,
+        currentSelectedOrbital
+      );
+      const targetIndex = groups.findIndex(
+        (group) => group.key === targetKey
+      );
+      const targetIsSP =
+        currentSelectedOrbital === "s" ||
+        currentSelectedOrbital === "p";
+
+      return groups.map((group, index) => {
+        const isTarget = group.key === targetKey;
+        let electronCount = group.electrons;
+        let coefficient = 0;
+        let relation = "";
+
+        if (isTarget) {
+          electronCount = Math.max(0, electronCount - 1);
+          coefficient =
+            currentSelectedN === 1 &&
+            currentSelectedOrbital === "s"
+              ? 0.30
+              : 0.35;
+          relation = "같은 전자군";
+        } else if (index > targetIndex) {
+          coefficient = 0;
+          relation = "오른쪽 전자군";
+        } else if (!targetIsSP) {
+          coefficient = 1.00;
+          relation = "왼쪽 전자군";
+        } else {
+          const groupN = getGroupPrincipalN(group);
+
+          if (groupN === currentSelectedN - 1) {
+            coefficient = 0.85;
+            relation = "n−1 전자껍질";
+          } else if (groupN <= currentSelectedN - 2) {
+            coefficient = 1.00;
+            relation = "n−2 이하";
+          } else {
+            coefficient = 0;
+            relation = "오른쪽 전자군";
+          }
+        }
+
+        const contribution = roundToTwo(
+          electronCount * coefficient
+        );
+
+        return {
+          ...group,
+          isTarget,
+          electronCount,
+          coefficient,
+          relation,
+          contribution
+        };
+      });
+    }
+
+    function getRuleDescription() {
+      const isSP =
+        currentSelectedOrbital === "s" ||
+        currentSelectedOrbital === "p";
+
+      if (!isSP) {
+        return {
+          title: "d 또는 f 전자 규칙",
+          summary:
+            "같은 전자군, 왼쪽 전자군, 오른쪽 전자군을 구분합니다.",
+          text:
+            "같은 nd 또는 nf 전자군의 다른 전자는 0.35, " +
+            "대상 전자군보다 왼쪽의 모든 전자는 1.00, " +
+            "오른쪽 전자는 0.00으로 계산합니다."
+        };
+      }
+
+      if (
+        currentSelectedN === 1 &&
+        currentSelectedOrbital === "s"
+      ) {
+        return {
+          title: "1s 전자 규칙",
+          summary:
+            "1s 전자군에서는 다른 1s 전자만 차폐에 기여합니다.",
+          text:
+            "대상 전자 자신을 제외한 다른 1s 전자에 0.30을 적용합니다. " +
+            "오른쪽 전자군은 차폐에 포함되지 않습니다."
+        };
+      }
+
+      return {
+        title: "s 또는 p 전자 규칙",
+        summary:
+          "같은 전자군, n−1 껍질, n−2 이하를 구분합니다.",
+        text:
+          "같은 ns·np 전자군의 다른 전자는 0.35, " +
+          "n−1 껍질의 전자는 0.85, n−2 이하의 전자는 1.00, " +
+          "오른쪽 전자군은 0.00으로 계산합니다."
+      };
+    }
+
+    function getCurrentTargetLabel() {
+      return (
+        `${currentSelectedElement.symbol} · ` +
+        `${currentSelectedN}${currentSelectedOrbital} 전자`
+      );
+    }
+
+    function getCurrentTargetLongLabel() {
+      return (
+        `${currentSelectedElement.name} · ` +
+        `${currentSelectedN}${currentSelectedOrbital} 전자군`
+      );
+    }
+
+    function calculateTotals(breakdown = currentCalculationBreakdown) {
+      const shielding = roundToTwo(
+        breakdown.reduce(
+          (sum, group) => sum + group.contribution,
+          0
+        )
+      );
+      const zeff = roundToTwo(
+        currentSelectedElement.atomicNumber - shielding
+      );
+
+      return { shielding, zeff };
+    }
+
+    function showLearningScreen() {
+      calculationModeScreen.classList.remove("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "true");
+      modeNextPanel.classList.remove("is-visible");
+      resultScreen.classList.remove("is-visible");
+      resultScreen.setAttribute("aria-hidden", "true");
+
+      renderLearningScreen();
+
+      learningScreen.classList.add("is-visible");
+      learningScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+    }
+
+    function backToModeFromLearning() {
+      learningScreen.classList.remove("is-visible");
+      learningScreen.setAttribute("aria-hidden", "true");
+      learningResultPanel.classList.remove("is-visible");
+
+      calculationModeScreen.classList.add("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "false");
+      modeNextPanel.classList.add("is-visible");
+      floatingFeedbackButton.classList.add("is-visible");
+    }
+
+    function renderLearningScreen() {
+      const color =
+        categoryHexData[currentSelectedElement.category] ?? "#58c7ff";
+      const rule = getRuleDescription();
+
+      learningScreen.style.setProperty("--quantum-color", color);
+      learningResultPanel.style.setProperty("--quantum-color", color);
+      learningHeaderSummary.textContent = getCurrentTargetLabel();
+      learningElementSymbol.textContent =
+        currentSelectedElement.symbol;
+      learningTargetTitle.textContent =
+        getCurrentTargetLongLabel();
+      learningTargetConfig.textContent =
+        `전자배치: ${formatFullConfiguration()}`;
+
+      learningRuleTitle.textContent = rule.title;
+      learningRuleSummary.textContent =
+        "먼저 스스로 계수를 선택한 뒤 답안을 확인하세요.";
+      learningRuleText.textContent = rule.text;
+      showHintButton.classList.remove("is-visible");
+      learningRuleCard.classList.remove("is-visible");
+
+      currentCalculationBreakdown = buildCalculationBreakdown();
+      learningSelections = {};
+      learningIsComplete = false;
+      learningResultPanel.classList.remove("is-visible");
+      learningStatus.className = "learning-status";
+      learningStatus.textContent =
+        "모든 전자군의 계수를 선택한 뒤 답안을 확인하세요.";
+
+      renderLearningRows();
+      updateLearningProgress();
+    }
+
+    function renderLearningRows() {
+      learningGroupList.innerHTML = "";
+
+      currentCalculationBreakdown.forEach((group) => {
+        const row = document.createElement("div");
+        row.className = "learning-group-row";
+        row.dataset.groupKey = group.key;
+        row.classList.toggle("is-target", group.isTarget);
+
+        const buttons = coefficientChoices
+          .map(
+            (coefficient) => `
+              <button
+                class="coefficient-button"
+                type="button"
+                data-group-key="${group.key}"
+                data-coefficient="${coefficient}"
+              >
+                ${formatDecimal(coefficient)}
+              </button>
+            `
+          )
+          .join("");
+
+        row.innerHTML = `
+          <div class="learning-group-info">
+            <strong>${group.label}</strong>
+            <span>
+              ${group.relation} · 계산 전자 ${group.electronCount}e⁻
+            </span>
+          </div>
+
+          <div class="coefficient-options">
+            ${buttons}
+          </div>
+
+          <div class="learning-contribution">
+            <strong id="learningContribution-${group.key}">−</strong>
+            <span>차폐 기여도</span>
+          </div>
+        `;
+
+        learningGroupList.appendChild(row);
+      });
+
+      learningGroupList
+        .querySelectorAll(".coefficient-button")
+        .forEach((button) => {
+          button.addEventListener("click", () => {
+            selectLearningCoefficient(
+              button.dataset.groupKey,
+              Number(button.dataset.coefficient)
+            );
+          });
+        });
+    }
+
+    function selectLearningCoefficient(groupKey, coefficient) {
+      learningSelections[groupKey] = coefficient;
+      learningIsComplete = false;
+      learningResultPanel.classList.remove("is-visible");
+      showHintButton.classList.remove("is-visible");
+      learningRuleCard.classList.remove("is-visible");
+      learningRuleSummary.textContent =
+        "선택을 수정했습니다. 다시 답안을 확인해 보세요.";
+
+      const group =
+        currentCalculationBreakdown.find(
+          (item) => item.key === groupKey
+        );
+      const row =
+        learningGroupList.querySelector(
+          `[data-group-key="${groupKey}"]`
+        );
+
+      row.classList.remove("is-correct", "is-wrong");
+      row.querySelectorAll(".coefficient-button")
+        .forEach((button) => {
+          button.classList.toggle(
+            "is-selected",
+            Number(button.dataset.coefficient) === coefficient
+          );
+        });
+
+      const contribution = roundToTwo(
+        group.electronCount * coefficient
+      );
+      document.getElementById(
+        `learningContribution-${groupKey}`
+      ).textContent =
+        `${group.electronCount} × ${formatDecimal(coefficient)} = ` +
+        `${formatDecimal(contribution)}`;
+
+      learningStatus.className = "learning-status";
+      learningStatus.textContent =
+        "선택한 계수를 수정할 수 있습니다. 모두 선택하면 답안을 확인하세요.";
+      updateLearningProgress();
+    }
+
+    function updateLearningProgress() {
+      const total = currentCalculationBreakdown.length;
+      const selected = Object.keys(learningSelections).length;
+      const progress = total ? (selected / total) * 100 : 0;
+
+      learningProgressText.textContent = `${selected} / ${total}`;
+      learningProgressBar.style.width = `${progress}%`;
+    }
+
+    function checkLearningAnswers() {
+      const total = currentCalculationBreakdown.length;
+      const selected = Object.keys(learningSelections).length;
+
+      if (selected < total) {
+        showHintButton.classList.remove("is-visible");
+        learningRuleCard.classList.remove("is-visible");
+        learningStatus.className = "learning-status error";
+        learningStatus.textContent =
+          `아직 ${total - selected}개 전자군의 계수가 선택되지 않았습니다.`;
+        return;
+      }
+
+      let wrongCount = 0;
+
+      currentCalculationBreakdown.forEach((group) => {
+        const selectedCoefficient =
+          learningSelections[group.key];
+        const correct =
+          Math.abs(selectedCoefficient - group.coefficient) < 1e-9;
+        const row =
+          learningGroupList.querySelector(
+            `[data-group-key="${group.key}"]`
+          );
+
+        row.classList.toggle("is-correct", correct);
+        row.classList.toggle("is-wrong", !correct);
+
+        if (!correct) wrongCount += 1;
+      });
+
+      if (wrongCount > 0) {
+        learningIsComplete = false;
+        learningResultPanel.classList.remove("is-visible");
+        learningRuleCard.classList.remove("is-visible");
+        showHintButton.classList.add("is-visible");
+        learningRuleSummary.textContent =
+          "오답이 있습니다. 필요할 때만 힌트를 열어보세요.";
+        learningStatus.className = "learning-status error";
+        learningStatus.textContent =
+          `${wrongCount}개 전자군의 계수가 슬레이터 규칙과 다릅니다. ` +
+          "붉게 표시된 전자군을 다시 확인하세요.";
+        return;
+      }
+
+      learningIsComplete = true;
+      showHintButton.classList.remove("is-visible");
+      learningRuleCard.classList.remove("is-visible");
+      learningRuleSummary.textContent =
+        "힌트 없이 모든 전자군을 정확히 분류했습니다.";
+      learningStatus.className = "learning-status success";
+      learningStatus.textContent =
+        "모든 전자군을 정확히 분류했습니다. 최종 계산 결과를 확인할 수 있습니다.";
+      learningResultPanel.classList.add("is-visible");
+    }
+
+    function showResultScreen(mode = currentCalculationMode) {
+      currentCalculationMode = mode;
+      currentCalculationBreakdown =
+        buildCalculationBreakdown();
+
+      calculationModeScreen.classList.remove("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "true");
+      learningScreen.classList.remove("is-visible");
+      learningScreen.setAttribute("aria-hidden", "true");
+      modeNextPanel.classList.remove("is-visible");
+      learningResultPanel.classList.remove("is-visible");
+
+      renderResultScreen();
+
+      resultScreen.classList.add("is-visible");
+      resultScreen.setAttribute("aria-hidden", "false");
+      floatingFeedbackButton.classList.add("is-visible");
+    }
+
+    function renderResultScreen() {
+      const color =
+        categoryHexData[currentSelectedElement.category] ?? "#58c7ff";
+      const totals = calculateTotals();
+
+      resultScreen.style.setProperty("--quantum-color", color);
+      resultHeaderSummary.textContent = getCurrentTargetLabel();
+      resultShieldingValue.textContent =
+        formatDecimal(totals.shielding);
+      resultZeffValue.textContent =
+        formatDecimal(totals.zeff);
+      resultTotalValue.textContent =
+        formatDecimal(totals.shielding);
+      resultFormula.innerHTML =
+        `Z<sub>eff</sub> = Z − S<br>` +
+        `= ${currentSelectedElement.atomicNumber} − ` +
+        `${formatDecimal(totals.shielding)} = ` +
+        `${formatDecimal(totals.zeff)}`;
+
+      resultContext.textContent =
+        `${getCurrentTargetLongLabel()}에 대해 중성 원자와 ` +
+        "슬레이터 규칙을 기준으로 계산한 근사값입니다.";
+
+      renderQuantumComparison(totals.zeff);
+
+      resultModeDescription.textContent =
+        currentCalculationMode === "auto"
+          ? "자동 계산으로 전자군을 분류하고 차폐 계수를 적용했습니다."
+          : "학습 모드에서 정확히 선택한 전자군별 차폐 계수를 적용했습니다.";
+
+      renderResultRows();
+    }
+
+
+    function getScfComparisonValue() {
+      const atomicNumber =
+        String(currentSelectedElement.atomicNumber);
+      const orbitalKey =
+        `${currentSelectedN}${currentSelectedOrbital}`;
+      const elementData =
+        clementiRaimondiScfData[atomicNumber];
+
+      if (!elementData) return null;
+      const value = elementData[orbitalKey];
+
+      return Number.isFinite(value) ? value : null;
+    }
+
+    function renderQuantumComparison(slaterZeff) {
+      const scfValue = getScfComparisonValue();
+
+      comparisonExplanation.classList.remove("is-visible");
+      comparisonExplanationButton.textContent =
+        "비교값 해석 보기 ▾";
+
+      if (scfValue === null) {
+        quantumComparisonGrid.style.display = "none";
+        quantumComparisonUnavailable.classList.add("is-visible");
+        comparisonExplanationButton.style.display = "none";
+        return;
+      }
+
+      const absoluteDifference = Math.abs(
+        slaterZeff - scfValue
+      );
+      const relativeDifference =
+        scfValue === 0
+          ? null
+          : (absoluteDifference / Math.abs(scfValue)) * 100;
+
+      quantumComparisonGrid.style.display = "grid";
+      quantumComparisonUnavailable.classList.remove("is-visible");
+      comparisonExplanationButton.style.display = "block";
+
+      comparisonSlaterValue.textContent =
+        formatDecimal(slaterZeff);
+      comparisonScfValue.textContent =
+        scfValue.toFixed(3);
+      comparisonAbsoluteValue.textContent =
+        absoluteDifference.toFixed(3);
+      comparisonRelativeValue.textContent =
+        relativeDifference === null
+          ? "−"
+          : `${relativeDifference.toFixed(1)}%`;
+    }
+
+    function renderResultRows() {
+      resultGroupList.innerHTML = "";
+
+      currentCalculationBreakdown.forEach((group) => {
+        const row = document.createElement("div");
+        row.className = "result-group-row";
+        row.classList.toggle("is-target", group.isTarget);
+
+        row.innerHTML = `
+          <div class="result-group-name">
+            <strong>${group.label}</strong>
+            <span>${group.relation}${group.isTarget ? " · 대상 전자 제외" : ""}</span>
+          </div>
+
+          <div class="result-data-cell">
+            <small>전자 수</small>
+            <strong>${group.electronCount}e⁻</strong>
+          </div>
+
+          <div class="result-data-cell">
+            <small>차폐 계수</small>
+            <strong>× ${formatDecimal(group.coefficient)}</strong>
+          </div>
+
+          <div class="result-data-cell">
+            <small>기여도</small>
+            <strong>${formatDecimal(group.contribution)}</strong>
+          </div>
+        `;
+
+        resultGroupList.appendChild(row);
+      });
+    }
+
+    function backFromResult() {
+      resultScreen.classList.remove("is-visible");
+      resultScreen.setAttribute("aria-hidden", "true");
+
+      calculationModeScreen.classList.add("is-visible");
+      calculationModeScreen.setAttribute("aria-hidden", "false");
+      modeNextPanel.classList.add("is-visible");
+      floatingFeedbackButton.classList.add("is-visible");
+    }
+
+    function restartCalculation() {
+      resultScreen.classList.remove("is-visible");
+      resultScreen.setAttribute("aria-hidden", "true");
+      currentSelectedN = null;
+      currentSelectedOrbital = null;
+      currentSelectedElectron = null;
+      currentCalculationMode = "auto";
+      learningSelections = {};
+      learningIsComplete = false;
+
+      safeStorageRemove("slaterSelectedShell");
+      safeStorageRemove("slaterSelectedOrbital");
+      safeStorageRemove("slaterSelectedElectron");
+      safeStorageRemove("slaterCalculationMode");
+
+      showPeriodicTable();
+    }
+
+
+    function openUpdateModal() {
+      updateModal.classList.add("is-visible");
+      updateModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      updateModalCloseButton.focus();
+    }
+
+    function closeUpdateModal() {
+      updateModal.classList.remove("is-visible");
+      updateModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      updateNoteButton.focus();
+    }
+
+    function openFeedbackForm() {
+      window.open("https://forms.gle/NkcLnnwwRuhdNWPZ8", "_blank", "noopener,noreferrer");
+    }
+
+    startButton.addEventListener("click", showPeriodicTable);
+    backButton.addEventListener("click", showIntro);
+
+
+    compactScreenContinueButton.addEventListener("click", () => {
+      document.body.classList.add("compact-notice-dismissed");
+      compactScreenNotice.setAttribute("aria-hidden", "true");
+    });
+
+    updateNoteButton.addEventListener("click", openUpdateModal);
+    updateModalBackdrop.addEventListener("click", closeUpdateModal);
+    updateModalCloseButton.addEventListener("click", closeUpdateModal);
+
+    document.addEventListener("keydown", (event) => {
+      if (
+        event.key === "Escape" &&
+        updateModal.classList.contains("is-visible")
+      ) {
+        closeUpdateModal();
+      }
+    });
+
+    feedbackButton.addEventListener("click", openFeedbackForm);
+    floatingFeedbackButton.addEventListener("click", openFeedbackForm);
+
+    nextButton.addEventListener("click", showQuantumScreen);
+    backToPeriodicButton.addEventListener("click", backToPeriodicScreen);
+
+    orbitalNextButton.addEventListener("click", showOrbitalScreen);
+    backToQuantumButton.addEventListener("click", backToQuantumScreen);
+    electronNextButton.addEventListener("click", showCalculationModeScreen);
+    backToOrbitalButton.addEventListener("click", backToOrbitalScreen);
+
+    calculationNextButton.addEventListener(
+      "click",
+      showCalculationModeScreen
+    );
+    backToElectronButton.addEventListener(
+      "click",
+      backToElectronScreen
+    );
+
+    automaticModeButton.addEventListener("click", () => {
+      selectCalculationMode("auto");
+    });
+
+    learningModeButton.addEventListener("click", () => {
+      selectCalculationMode("learning");
+    });
+
+    modeNextButton.addEventListener("click", () => {
+      if (currentCalculationMode === "auto") {
+        showResultScreen("auto");
+      } else {
+        showLearningScreen();
+      }
+    });
+
+    backToModeFromLearningButton.addEventListener(
+      "click",
+      backToModeFromLearning
+    );
+    checkLearningButton.addEventListener(
+      "click",
+      checkLearningAnswers
+    );
+
+    showHintButton.addEventListener("click", () => {
+      const rule = getRuleDescription();
+      learningRuleSummary.textContent = rule.summary;
+      learningRuleCard.classList.add("is-visible");
+      showHintButton.classList.remove("is-visible");
+    });
+    learningResultButton.addEventListener("click", () => {
+      if (learningIsComplete) {
+        showResultScreen("learning");
+      }
+    });
+
+    backFromResultButton.addEventListener(
+      "click",
+      backFromResult
+    );
+    changeModeButton.addEventListener(
+      "click",
+      backFromResult
+    );
+    restartButton.addEventListener(
+      "click",
+      restartCalculation
+    );
+
+    comparisonExplanationButton.addEventListener(
+      "click",
+      () => {
+        const isVisible =
+          comparisonExplanation.classList.toggle("is-visible");
+        comparisonExplanationButton.textContent =
+          isVisible
+            ? "비교값 해석 닫기 ▴"
+            : "비교값 해석 보기 ▾";
+      }
+    );
+
+    renderPeriodicTable();
+    renderLegend();
+    restoreSelection();
+  </script>
+</body>
+</html>
